@@ -44,14 +44,21 @@ The MD5 hash should be ``0a0b0b2ed4f45699a0d27cd6ddb4d906``.
 * *revolving cursor*: revolves around a letter or dash (``-``) on the input area; looks like a plus sign (``+``)
 * *virtual keyboard*: the letters ``AEPOZXLU GKISTVYN``
 
+## Bugs
+
+* Sometimes, the letter or dash (``-``) under the revolving cursor on the input area does not flash. How to reproduce: after booting up the ROM, observe the first dash while pressing B (it starts to flash).
+* The bottom half of the flying letter sometimes looks corrupt and flashing. How to reproduce: enter any two letters (e.g. ``AA``), immediately delete them while the second letter is still flying, observe the flying letter. (Use pause&frame advance on an emulator for best results.)
+* A variation of the previous bug: sometimes, the bottom half of the flying letter flashes and some flying particles disappear. How to reproduce: enter any two letters (e.g. ``AA``), delete them, immediately enter another letter (e.g. ``A``). (Use pause&frame advance on an emulator for best results.)
+* You can sometimes delete non-final letters of the code. How to reproduce: enter ``AAAAAAAA`` on the last line (you need to move the cursor manually from the 6th to the 7th letter), press B three times, observe the code (``AAAAA-AA``).
+
 ## Speculation
 
 The Game Genie may have been originally designed to support four codes instead of three:
-* at ``$fdb0``, ``decoded_codes`` (``$90``) is initialized to length 16 instead of 12
-* at ``$fe43``, the address of the code that was just decoded is compared to the first three codes, not just two
-* there is space for 32 letters in ``entered_letters`` (``$66b``)
-* even on an NTSC TV, there would be just enough space vertically for four codes (4 tiles for logo, 8 tiles for virtual keyboard, 16 tiles for the codes)
+* At ``$fdb0``, ``decoded_codes`` (``$90``) is initialized to length 16 instead of 12.
+* At ``$fe43``, the address of the code that was just decoded is compared to the first three codes, not just two.
+* There is space for 32 letters in ``entered_letters`` (``$66b``).
+* Even on an NTSC TV, there would be just enough space vertically for four codes (4 tiles for logo, 8 tiles for virtual keyboard, 16 tiles for the codes).
 
 However:
-* there are not enough bits for four codes in ``genie_master_control`` (``$8000``)
-* there are no unused registers immediately after ``genie_master_control``
+* There are not enough bits for four codes in ``genie_master_control`` (``$8000``).
+* There are no unused registers immediately after ``genie_master_control``.
