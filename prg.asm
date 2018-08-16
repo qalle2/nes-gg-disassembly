@@ -1,10 +1,14 @@
-; the PRG-ROM
-; assembles to a 4096-byte file with MD5 hash 8d699c97d164d406c2912aece164cd32
+; PRG-ROM (4 KiB)
 
+; data segment (output disallowed)
+    .data
     .include "constants.asm"
     .include "macros.asm"
 
+; text segment (output allowed)
+    .text
     .org $f000  ; last 4 KiB of CPU memory space
+
 init1:
     ; part 1/3 of init code
 
