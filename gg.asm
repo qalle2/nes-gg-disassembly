@@ -1,12 +1,6 @@
-    ; Game Genie ROM disassembly by Kalle (http://qalle.net)
-    ; Assembles with Ophis.
+; nes-gg-disassembly by qalle2 (http://github.com/qalle2/nes-gg-disassembly)
 
-    ; iNES header
-    .byte "NES", $1a  ; identifier
-    .byte 1  ; 1*16 KiB PRG-ROM
-    .byte 1  ; 1*8 KiB CHR-ROM
-    .byte %00000000, %00000000  ; mapper 0, horizontal mirroring
-    .byte $00, $00, $00, $00, $00, $00, $00, $00  ; reserved
+    .include "header.asm"  ; iNES header
 
     ; The same 4096-byte PRG-ROM (assembled prg.asm) is repeated four times,
     ; for a total of 16 KiB.
