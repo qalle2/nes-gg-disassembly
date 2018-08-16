@@ -5,17 +5,21 @@
 ; absolute addressing)
 
 .macro dec_absolute
-    .byte $ce, _1, $00
+    .byte $ce  ; opcode
+    .word _1
 .macend
 
 .macro lda_absolute
-    .byte $ad, _1, $00
+    .byte $ad  ; opcode
+    .word _1
 .macend
 
 .macro ldx_absolute
-    .byte $ae, _1, $00
+    .byte $ae  ; opcode
+    .word _1
 .macend
 
 .macro sta_absolute
-    .byte $8d, _1, $00
+    .byte $8d  ; opcode
+    .word _1
 .macend
