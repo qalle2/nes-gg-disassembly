@@ -6,6 +6,7 @@ Disassembly of the ROM of the NES cheat cartridge *Game Genie*.
 
 * [NESDev Wiki](http://wiki.nesdev.com)
   * e.g. [the Game Genie article](http://wiki.nesdev.com/w/index.php/Game_Genie)
+* [NES Game Genie Code Format DOC](http://nesdev.com/nesgg.txt)
 * [FCEUX](http://www.fceux.com) (Debugger, Code/Data Logger, etc.)
 * [`nes-sprites.lua`](http://forums.nesdev.com/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
 * a quick&dirty disassembler I wrote myself
@@ -67,14 +68,14 @@ The Game Genie ROM (`genie.nes`) is required but not included.
     * enter any two letters (e.g. `UU`)
     * immediately delete the last letter (press B)
     * immediately delete another letter (press B)
-    * observe the bottom half of the flying letter
+    * observe the bottom half of the flying letter (it is corrupt and flashes)
 * A variation of the previous bug: sometimes, the bottom half of the flying letter flashes and some flying particles disappear.
   * How to reproduce (use pause&frame advance on an emulator for best results):
     * enter two letters or more (e.g. `UUU`)
     * delete the last letter (press B)
     * immediately delete another letter (press B)
     * immediately enter another letter (e.g. `U`)
-    * observe the flying letter and note the missing particles
+    * observe the bottom half of the flying letter (it flashes) and note the missing particles
 * You can sometimes delete non-final letters of the code.
   * How to reproduce:
     * enter `AAAAAAAA` on the last line (you need to move the cursor manually from the 6th to the 7th letter)
