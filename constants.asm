@@ -9,23 +9,23 @@
 ;    "blk"    block
 ;    "ctrl"   control
 ;    "flag"   1 = yes, 0 = no
-;    "fly"    flying letter (see above)
+;    "fly"    flying letter
 ;    "gfx"    graphics
-;    "hand"   hand cursor (see above)
+;    "hand"   hand cursor
 ;    "hi"     more significant byte
-;    "kbd"    virtual keyboard (see above)
+;    "kbd"    virtual keyboard
 ;    "lo"     less significant byte
 ;    "ltr"    letter (32*32 pixels)
 ;    "nt"     Name Table
 ;    "oam"    Object Attribute Memory (sprite RAM)
 ;    "off"    offset
 ;    "pal"    palette
-;    "parti"  particle (see above)
+;    "parti"  particle
 ;    "ppu"    Picture Processing Unit (the NES video chip)
 ;    "prev"   previous
 ;    "ptr"    memory pointer (2 bytes, less significant first)
 ;    "px"     pixel
-;    "revo"   revolving cursor (see above)
+;    "revo"   revolving cursor
 ;    "snd"    sound
 ;    "spd"    speed
 ;    "tbl"    table
@@ -128,7 +128,7 @@
 .alias metasprite_x             $2d
 .alias metasprite_y             $2f
 .alias multiplication_temp      $27
-.alias nmi_done_flag            $49
+.alias nmi_done                 $49
 .alias nybble_offset            $40
 .alias nybble_vram_high         $21
 .alias nybble_vram_low          $20
@@ -167,7 +167,7 @@
 .alias rows_left                $7e  ; only in fill_attribute_table_rows
 .alias scroll_x_mirror          $45
 .alias scroll_y_mirror          $46
-.alias skip_nmi_flag            $0c
+.alias skip_nmi                 $0c
 .alias sound_temp               $04
 .alias target_offset            $84
 .alias unused1                  $33
@@ -179,22 +179,84 @@
 .alias vram_block_x             $1e
 .alias vram_block_y             $1f
 .alias vram_budget              $2c
-.alias vram_buffer_read_pos1    $29  ; position of last byte read + 1
-.alias vram_buffer_read_pos2    $2b  ; position of last byte read (not sure of purpose)
-.alias vram_buffer_write_pos    $2a  ; position of last byte written + 1
+.alias vram_buffer_free_bytes   $2b
+.alias vram_buffer_next_read    $29
+.alias vram_buffer_next_write   $2a
 
 ; --- RAM - words (2 bytes each, low first) -----------------------------------
 
 .alias code_ptr          $80
 .alias decoded_codes_ptr $82
-.alias gfx_ptr           $39
+.alias graphics_pointer  $39
 .alias hand_x_speed_ptr  $57
 .alias hand_y_speed_ptr  $59
 .alias ram_clear_ptr     $00
 .alias sprite_x          $3e
 .alias sprite_y          $3c
 
-; --- RAM - blocks ------------------------------------------------------------
+; --- RAM - blocks - graphics -------------------------------------------------
+
+; interleaved sprite data
+; 256 bytes
+; copied to OAM
+.alias interleaved_sprite_data $0200  ; ...$02ff
+
+; sprite data in planar format
+; each table is 64 bytes
+; sprite indexes:
+;    0-19: hand cursor (5*4 sprites)
+;   20-23: revolving cursor (2*2 sprites)
+;   24-39: flying letter (4*4 sprites)
+;   32-47: 1st particle set (16 sprites; overlaps with the flying letter)
+;   48-63: 2nd particle set (16 sprites)
+.alias sprite_attributes  $0463  ; ...$04a2
+.alias sprite_x_positions $04a3  ; ...$04e2
+.alias sprite_y_positions $04e3  ; ...$0522
+.alias sprite_tiles       $0523  ; ...$0562
+
+; metasprites (objects consisting of more than one hardware sprite)
+; i.e., the hand cursor, the revolving cursor and the flying letter
+; only modified during initialization
+; for each metasprite:
+;     - 1 byte: width (in hardware sprites)
+;     - 1 byte: height (in hardware sprites)
+;     - width*height bytes: indexes to individual sprites in planar sprite data
+; 46 bytes total:
+;     - 2 + 5*4 for the hand cursor
+;     - 2 + 2*2 for the revolving cursor
+;     - 2 + 4*4 for the flying letter
+.alias metasprites $0595  ; ...$05c2
+
+; index to each metasprite in the metasprites table
+; size: 50 bytes
+.alias metasprite_indexes $0563  ; ...$0594
+
+; horizontal and vertical speeds of flying particles
+; signed, two's complement
+; only indexes 32-63 are accessed
+.alias particle_speeds_x $060b  ; indexes 32-63 = $062b...$064a
+.alias particle_speeds_y $062b  ; indexes 32-63 = $064b...$066a
+
+; a block of bytes to be copied to VRAM
+; total size: 35 bytes
+; structure:
+;   - 1 byte: data size (1-32)
+;   - 1 byte: address high
+;   - 1 byte: address low
+;   - 1-32 bytes: payload
+.alias vram_block $0440  ; ...$0462
+
+; several VRAM blocks to be copied to VRAM
+; size: 256 bytes
+.alias vram_buffer $0300  ; ...$03ff
+
+; --- RAM - blocks - other ----------------------------------------------------
+
+; letters entered by the user
+; 24 bytes
+; 0 = no letter
+; 3-18 = letter AEPOZXLU GKISTVYN, respectively
+.alias entered_letters $066b  ; ...$0682
 
 ; current decoded Game Genie code
 ; 4 bytes: address high, address low, replace value, compare value
@@ -202,60 +264,10 @@
 
 ; all decoded Game Genie codes
 ; 16 bytes initialized, 12 bytes actually used
-; 4 bytes for each code: address high, address low, compare value, replace
-; value (note: different order compared to decoded_code)
+; 4 bytes for each code:
+; address high, address low, compare value, replace value
+; (note: the order is different from decoded_code)
 .alias decoded_codes $90  ; ...$9f
-
-; 24 bytes; 0 = no letter, 3-18 = letter
-.alias entered_letters $066b  ; ...$0682
-
-; Index to each metasprite in the metasprites table.
-; Value 46 (size of the metasprites table) = no metasprite.
-; 50 bytes are cleared in init3.
-.alias metasprite_indexes $0563  ; ...$0594
-
-; Metasprites, i.e. objects consisting of more than one sprite, i.e. the hand
-; cursor, the revolving cursor and the flying letter.
-; Data for each metasprite:
-;     - 1 byte: width in sprites
-;     - 1 byte: height in sprites
-;     - width*height bytes: each byte = sprite index in planar sprite data
-; Only modified during initialization in assign_metasprite_to_graphic.
-; 46 bytes total:
-;     2 + 20 (5*4) for the hand cursor
-;     2 +  4 (2*2) for the revolving cursor
-;     2 + 16 (4*4) for the flying letter
-.alias metasprites $0595  ; ...$05c2
-
-; horizontal and vertical speeds of particles
-; signed, two's complement
-; only indexes 32-63 are accessed
-.alias particle_speeds_x $060b  ; indexes 32-63 = $062b...$064a
-.alias particle_speeds_y $062b  ; indexes 32-63 = $064b...$066a
-
-; sprite data in planar format (64 bytes each)
-; sprites  0-19: hand cursor (5*4 sprites)
-; sprites 20-23: revolving cursor (2*2 sprites)
-; sprites 24-39: flying letter (4*4 sprites)
-; sprites 32-47: 1st particle set (16 sprites; overlaps with the flying letter)
-; sprites 48-63: 2nd particle set (16 sprites)
-; Note: maybe they planned to use the residual hand graphic at the end of the
-; graphics data to avoid the overlap.
-.alias sprite_attributes  $0463  ; ...$04a2
-.alias sprite_x_positions $04a3  ; ...$04e2
-.alias sprite_y_positions $04e3  ; ...$0522
-.alias sprite_tiles       $0523  ; ...$0562
-
-; final sprite data, copied to OAM (256 bytes)
-.alias interleaved_sprite_data $0200  ; ...$02ff
-
-; contiguous block of bytes to be copied to VRAM (35 bytes)
-; first 3 bytes: data size (1-32), address high, address low
-; the rest: payload (1-32 bytes)
-.alias vram_block $0440  ; ...$0462
-
-; several VRAM blocks (256 bytes)
-.alias vram_buffer $0300  ; ...$03ff
 
 ; --- Non-address constants ---------------------------------------------------
 
@@ -269,25 +281,36 @@
 .alias joypad_left   %00000010
 .alias joypad_right  %00000001
 
-; background palette colors
-.alias pal_bg_bg        $0d  ; black (background)
-.alias pal_bg_kbd       $2c  ; cyan
-.alias pal_bg_input     $00  ; gray (input area)
-.alias pal_bg_hilite    $20  ; white (highlighted items)
-.alias pal_bg_anim_init $26  ; red (initial animated color, never visible)
-.alias pal_bg_anim0     $21  ; sky blue
-.alias pal_bg_anim1     $2c  ; cyan
-.alias pal_bg_anim2     $2b  ; green
-.alias pal_bg_anim3     $28  ; yellow
-.alias pal_bg_anim4     $27  ; orange
-.alias pal_bg_anim5     $25  ; pink 1
-.alias pal_bg_anim6     $24  ; pink 2
-.alias pal_bg_anim7     $2c  ; cyan
-.alias pal_bg_unused    $00  ; gray
+; color names
+.alias gray     $00
+.alias black    $0d  ; causes problems with some TVs
+.alias purple   $13
+.alias white    $20
+.alias sky_blue $21
+.alias pink1    $24
+.alias pink2    $25
+.alias red      $26
+.alias orange   $27
+.alias yellow   $28
+.alias green    $2b
+.alias cyan     $2c
 
-; sprite palette colors
-.alias pal_spr_letter_and_revo1_and_parti1      $13  ; purple
-.alias pal_spr_hand_skin                        $26  ; red
-.alias pal_spr_hand_sleeve_and_revo2_and_parti2 $20  ; white
-.alias pal_spr_unused1                          $00  ; gray
-.alias pal_spr_unused2                          $28  ; yellow
+; colors
+.alias color_animated0                   sky_blue
+.alias color_animated1                   cyan
+.alias color_animated2                   green
+.alias color_animated3                   yellow
+.alias color_animated4                   orange
+.alias color_animated5                   pink2
+.alias color_animated6                   pink1
+.alias color_animated7                   cyan
+.alias color_animated_initial            red  ; never seen
+.alias color_background                  black
+.alias color_hand1                       red
+.alias color_hand2_revolving2_particle2  white
+.alias color_highlight                   white
+.alias color_input_area                  gray
+.alias color_keyboard                    cyan
+.alias color_letter_revolving1_particle1 purple
+.alias color_unused1                     gray
+.alias color_unused2                     yellow
