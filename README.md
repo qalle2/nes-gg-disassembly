@@ -33,13 +33,14 @@ The Game Genie ROM (`genie.nes`) is required but not included.
 1. download and extract the Game Genie ROM as described earlier
 1. open the file in a hex editor
 1. go to offset 16 (i.e., skip the first 16 bytes)
-1. copy 4,096 bytes (4 KiB) to a new file
+1. copy the following 4,096 bytes (4 KiB) to a new file
 1. save the new file as `original-prg.bin` (`assemble.bat` expects to find it)
 1. the MD5 hash of the new file should be `8d699c97d164d406c2912aece164cd32`
 
 ### Getting the original CHR-ROM data
 
 1. download and extract the Game Genie ROM as described earlier
+1. open the file in a hex editor
 1. copy the last 256 bytes to a new file
 1. save the new file as `original-chr.bin` (`assemble.bat` expects to find it)
 1. the MD5 hash of the new file should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
@@ -63,14 +64,16 @@ The Game Genie ROM (`genie.nes`) is required but not included.
     * observe the first dash (it flashes)
 * The bottom half of the flying letter sometimes looks corrupt and flashing.
   * How to reproduce (use pause&frame advance on an emulator for best results):
-    * enter any two letters (e.g. `AA`)
-    * immediately delete the letters while the second letter is still flying
-    * observe the flying letter
+    * enter any two letters (e.g. `UU`)
+    * immediately delete the last letter (press B)
+    * immediately delete another letter (press B)
+    * observe the bottom half of the flying letter
 * A variation of the previous bug: sometimes, the bottom half of the flying letter flashes and some flying particles disappear.
   * How to reproduce (use pause&frame advance on an emulator for best results):
-    * enter any two letters (e.g. `AA`)
-    * delete the letters
-    * immediately enter another letter (e.g. `A`)
+    * enter two letters or more (e.g. `UUU`)
+    * delete the last letter (press B)
+    * immediately delete another letter (press B)
+    * immediately enter another letter (e.g. `U`)
     * observe the flying letter and note the missing particles
 * You can sometimes delete non-final letters of the code.
   * How to reproduce:
