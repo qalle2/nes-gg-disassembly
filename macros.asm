@@ -6,20 +6,20 @@
 
 .macro dec_absolute
     .byte $ce  ; opcode
-    .word _1
+    .word _1   ; operand
 .macend
 
 .macro lda_absolute
     .byte $ad  ; opcode
-    .word _1
+    .word _1   ; operand
 .macend
 
 .macro ldx_absolute
     .byte $ae  ; opcode
-    .word _1
+    .word _1   ; operand
 .macend
 
 .macro sta_absolute
     .byte $8d  ; opcode
-    .word _1
+    .word _1   ; operand
 .macend
