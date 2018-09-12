@@ -23,7 +23,6 @@
 ;    "parti"  particle
 ;    "ppu"    Picture Processing Unit (the NES video chip)
 ;    "prev"   previous
-;    "ptr"    memory pointer (2 bytes, less significant first)
 ;    "px"     pixel
 ;    "revo"   revolving cursor
 ;    "snd"    sound
@@ -156,7 +155,7 @@
 .alias revolving_speed_x        $6b  ; signed (two's-complement)
 .alias revolving_speed_y        $6c  ; signed (two's-complement)
 .alias revolving_x_letter1      $64  ; 0-7
-.alias revolving_x_letter2      $81  ; only in update_keyboard_letter_attribute_data
+.alias revolving_x_letter2      $81
 .alias revolving_x              $55  ; 10-234
 .alias revolving_x_target       $68  ; 10-234
 .alias revolving_y_letter1      $65  ; 0-2
@@ -185,14 +184,14 @@
 
 ; --- RAM - words (2 bytes each, low first) -----------------------------------
 
-.alias code_ptr          $80
-.alias decoded_codes_ptr $82
-.alias graphics_pointer  $39
-.alias hand_x_speed_ptr  $57
-.alias hand_y_speed_ptr  $59
-.alias ram_clear_ptr     $00
-.alias sprite_x          $3e
-.alias sprite_y          $3c
+.alias code_pointer          $80
+.alias decoded_codes_pointer $82
+.alias graphics_pointer      $39
+.alias hand_x_speed_pointer  $57
+.alias hand_y_speed_pointer  $59
+.alias ram_clear_pointer     $00
+.alias sprite_x              $3e
+.alias sprite_y              $3c
 
 ; --- RAM - blocks - graphics -------------------------------------------------
 
