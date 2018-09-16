@@ -63,6 +63,14 @@ The Game Genie ROM (`genie.nes`) is required but not included.
 
 ![attribute byte boundaries](screenshot-pal,no_scroll,no_sprites,grid.png)
 
+### Sprites
+
+* NTSC mode (256×224 pixels)
+* background hidden (using emulator settings)
+* the hand cursor, the revolving cursor, a flying letter (`L`) and flying particles can be seen
+
+![sprites](screenshot-sprites.png)
+
 ## Parts of the Game Genie screen
 
 * *flying letter*: a letter that flies from the virtual keyboard to the input area when a letter is entered
