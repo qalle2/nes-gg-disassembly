@@ -1,6 +1,6 @@
 # nes-gg-disassembly
 
-Disassembly of the ROM of the NES cheat cartridge *Game Genie*.
+A disassembly of the ROM of the [Nintendo Entertainment System](http://en.wikipedia.org/wiki/Nintendo_Entertainment_System) (NES) version of the cheat cartridge [*Game Genie*](http://en.wikipedia.org/wiki/Game_Genie).
 
 ## Resources and programs used
 
@@ -24,14 +24,14 @@ However, I have *not* used earlier Game Genie disassemblies, e.g. [game-genie-di
 The Game Genie ROM (`genie.nes`) is required but not included.
 
 1. download the compressed ROM (`genie.zip`) from [NESDev](http://nesdev.com/archive.html) or directly from [`genie.zip`](http://nesdev.com/genie.zip) (the site claims: *Galoob has ... given permission for free distribution*)
-1. extract the file
+1. extract the file (`genie.nes`)
 1. rename the file to `original.nes` (`assemble.bat` expects to find it)
 1. the file size should be 24,592 bytes
 1. the MD5 hash of the file should be `e354fb5b20e1b9fe4e5ca330f9b3391a`
 
 ### Getting the original PRG-ROM data
 
-1. download and extract the Game Genie ROM as described earlier
+1. download and extract the Game Genie ROM (`genie.nes`) as described earlier
 1. open the file in a hex editor
 1. go to offset 16 (i.e., skip the first 16 bytes)
 1. copy the following 4,096 bytes (4 KiB) to a new file
@@ -40,11 +40,28 @@ The Game Genie ROM (`genie.nes`) is required but not included.
 
 ### Getting the original CHR-ROM data
 
-1. download and extract the Game Genie ROM as described earlier
+1. download and extract the Game Genie ROM (`genie.nes`) as described earlier
 1. open the file in a hex editor
 1. copy the last 256 bytes to a new file
 1. save the new file as `original-chr.bin` (`assemble.bat` expects to find it)
 1. the MD5 hash of the new file should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
+
+## Screenshots
+
+### Normal screenshot
+
+* NTSC mode (256×224 pixels)
+
+![normal](screenshot-ntsc.png)
+
+### Attribute Table byte boundaries
+
+* PAL mode (256×240 pixels)
+* background scrolling disabled (by hacking the ROM)
+* sprites hidden (using emulator settings)
+* a red 32×32-pixel grid and text added (photoshopped)
+
+![attribute byte boundaries](screenshot-pal,no_scroll,no_sprites,grid.png)
 
 ## Parts of the Game Genie screen
 
@@ -59,28 +76,28 @@ The Game Genie ROM (`genie.nes`) is required but not included.
 
 * Sometimes, the letter or dash (`-`) under the revolving cursor on the input area does not flash.
   * How to reproduce:
-    * boot up the ROM
-    * observe the first dash (it does not flash)
-    * press B
-    * observe the first dash (it flashes)
-* The bottom half of the flying letter sometimes looks corrupt and flashing.
-  * How to reproduce (use pause&frame advance on an emulator for best results):
-    * enter any two letters (e.g. `UU`)
-    * immediately delete the last letter (press B)
-    * immediately delete another letter (press B)
-    * observe the bottom half of the flying letter (it is corrupt and flashes)
-* A variation of the previous bug: sometimes, the bottom half of the flying letter flashes and some flying particles disappear.
-  * How to reproduce (use pause&frame advance on an emulator for best results):
-    * enter two letters or more (e.g. `UUU`)
-    * delete the last letter (press B)
-    * immediately delete another letter (press B)
-    * immediately enter another letter (e.g. `U`)
-    * observe the bottom half of the flying letter (it flashes) and note the missing particles
+    1. boot up the ROM
+    1. observe the first dash (it does not flash)
+    1. press B
+    1. observe the first dash (it flashes)
 * You can sometimes delete non-final letters of the code.
   * How to reproduce:
-    * enter `AAAAAAAA` on the last line (you need to move the cursor manually from the 6th to the 7th letter)
-    * press B three times
-    * observe the code (`AAAAA-AA`)
+    1. enter `AAAAAAAA` on the last line (you need to move the cursor manually from the 6th to the 7th letter)
+    1. press B three times
+    1. observe the code (`AAAAA-AA`)
+* The bottom half of the flying letter sometimes looks corrupt and flashing.
+  * How to reproduce (use pause&frame advance on an emulator for best results):
+    1. enter any two letters (e.g. `UU`)
+    1. immediately delete the last letter (press B)
+    1. immediately delete another letter (press B)
+    1. observe the bottom half of the flying letter (it is corrupt and flashes)
+* A variation of the previous bug: sometimes, the bottom half of the flying letter flashes and some flying particles disappear.
+  * How to reproduce (use pause&frame advance on an emulator for best results):
+    1. enter two letters or more (e.g. `UUU`)
+    1. delete the last letter (press B)
+    1. immediately delete another letter (press B)
+    1. immediately enter another letter (e.g. `U`)
+    1. observe the bottom half of the flying letter (it flashes) and note the missing particles
 
 The sprite-related bugs seem to be caused by some sprites being assigned to both the flying letter and the flying particles.
 
