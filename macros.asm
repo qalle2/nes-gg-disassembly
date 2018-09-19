@@ -1,25 +1,29 @@
-; macros for "prg.asm"
+; Macros for "prg.asm" in alphabetical order
 
-; used for overriding the automatic zero page optimization performed by Ophis
-; (the Game Genie ROM needlessly accesses some zero page addresses using
-; absolute addressing)
-
-.macro dec_absolute
+.macro dec_abs
+    ; DEC absolute
+    ; (for overriding the zero page auto-optimization performed by Ophis)
     .byte $ce  ; opcode
     .word _1   ; operand
 .macend
 
-.macro lda_absolute
+.macro lda_abs
+    ; LDA absolute
+    ; (for overriding the zero page auto-optimization performed by Ophis)
     .byte $ad  ; opcode
     .word _1   ; operand
 .macend
 
-.macro ldx_absolute
+.macro ldx_abs
+    ; LDX absolute
+    ; (for overriding the zero page auto-optimization performed by Ophis)
     .byte $ae  ; opcode
     .word _1   ; operand
 .macend
 
-.macro sta_absolute
+.macro sta_abs
+    ; STA absolute
+    ; (for overriding the zero page auto-optimization performed by Ophis)
     .byte $8d  ; opcode
     .word _1   ; operand
 .macend
