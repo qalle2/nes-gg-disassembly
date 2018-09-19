@@ -90,7 +90,7 @@ ram_clear_loop:
     sta ppu_ctrl
 
     ; $ff -> vram_buffer_free_bytes
-    .invoke dec_absolute vram_buffer_free_bytes
+    `dec_abs vram_buffer_free_bytes
 
     ; continue initialization
     jmp initialization3
@@ -153,9 +153,9 @@ nmi:
     jsr sprite_dma
     jsr vram_buffer_to_vram
 
-    .invoke lda_absolute scroll_x_mirror
+    `lda_abs scroll_x_mirror
     sta ppu_scroll
-    .invoke lda_absolute scroll_y_mirror
+    `lda_abs scroll_y_mirror
     sta ppu_scroll
 
     lda ppu_ctrl_mirror
@@ -163,7 +163,7 @@ nmi:
 
 nmi_skip:
     lda #1
-    .invoke sta_absolute nmi_done
+    `sta_abs nmi_done
 
     ; pull Y, X, A
     pla
@@ -200,13 +200,13 @@ draw_graphic_on_background:
     sta gfx_height
 
     ; advance graphics pointer to start of data
-    .invoke lda_absolute graphics_pointer
+    `lda_abs graphics_pointer
     clc
     adc #2
-    .invoke sta_absolute graphics_pointer
-    .invoke lda_absolute graphics_pointer+1
+    `sta_abs graphics_pointer
+    `lda_abs graphics_pointer+1
     adc #0
-    .invoke sta_absolute graphics_pointer+1
+    `sta_abs graphics_pointer+1
 
     ; copy nybbles to VRAM buffer
     lda #0
@@ -245,7 +245,7 @@ graphic_nybble_to_vram_buffer:
     jsr multiply
     clc
     adc gfx_x_offset
-    .invoke sta_absolute nybble_offset
+    `sta_abs nybble_offset
 
     ; read graphics byte
     lsr
@@ -254,7 +254,7 @@ graphic_nybble_to_vram_buffer:
     sta gfx_data_byte
 
     ; get nybble from byte
-    .invoke lda_absolute nybble_offset
+    `lda_abs nybble_offset
     and #%00000001
     beq get_upper_nybble1
     lda gfx_data_byte
@@ -1082,27 +1082,27 @@ clear_loop:
 
     ; initial position of hand cursor
     lda #14
-    .invoke sta_absolute hand_x_px
+    `sta_abs hand_x_px
     sta metasprite_x
     lda #60
-    .invoke sta_absolute hand_y_px
+    `sta_abs hand_y_px
     sta metasprite_y
 
     ; initial position of revolving cursor
     lda #128
-    .invoke sta_absolute revolving_x
+    `sta_abs revolving_x
     lda #150
-    .invoke sta_absolute revolving_y
+    `sta_abs revolving_y
 
     ; draw hand cursor
     lda #graphic_id_hand
     jsr assign_metasprite_to_graphic
-    .invoke sta_absolute hand_metasprite
+    `sta_abs hand_metasprite
 
     ; draw revolving cursor
     lda #graphic_id_revolv
     jsr assign_metasprite_to_graphic
-    .invoke sta_absolute revolving_metasprite
+    `sta_abs revolving_metasprite
 
     lda #255
     sta metasprite_y
@@ -1112,7 +1112,7 @@ clear_loop:
     ; the flying letter to have wrong dimensions)
     lda #graphic_id_p
     jsr assign_metasprite_to_graphic
-    .invoke sta_absolute flying_metasprite
+    `sta_abs flying_metasprite
 
     ; copy sprite attribute data from ROM to RAM
     ldx #19
@@ -1170,10 +1170,10 @@ wait_until_nmi_done:
 
     ; clear the flag
     lda #0
-    .invoke sta_absolute nmi_done
+    `sta_abs nmi_done
     ; wait until the flag gets set
 nmi_done_wait_loop:
-    .invoke lda_absolute nmi_done
+    `lda_abs nmi_done
     beq nmi_done_wait_loop
     rts
 
@@ -1194,11 +1194,11 @@ do_every_frame:
     jsr check_select_and_start
 
     ; update the metasprite of the hand cursor
-    .invoke lda_absolute hand_x_px
+    `lda_abs hand_x_px
     sta metasprite_x
-    .invoke lda_absolute hand_y_px
+    `lda_abs hand_y_px
     sta metasprite_y
-    .invoke ldx_absolute hand_metasprite
+    `ldx_abs hand_metasprite
     jsr update_metasprite
 
     jsr convert_sprites
@@ -1211,7 +1211,7 @@ check_arrows:
     ;   move_hand
 
     ; if hand_y_speed_pointer set, skip checking vertical arrows
-    .invoke lda_absolute hand_y_speed_pointer+1
+    `lda_abs hand_y_speed_pointer+1
     bne check_horizontal_arrows
 
     ; was up pressed?
@@ -1225,9 +1225,9 @@ check_arrows:
     ; hand successfully moved
     ; hand_speeds_negative -> hand_y_speed_pointer
     lda #<hand_speeds_negative
-    .invoke sta_absolute hand_y_speed_pointer
+    `sta_abs hand_y_speed_pointer
     lda #>hand_speeds_negative
-    .invoke sta_absolute hand_y_speed_pointer+1
+    `sta_abs hand_y_speed_pointer+1
     ; if hand moved from 3rd line to 2nd, 32 -> hand_y_speed_offset,
     ; else 0 -> hand_y_speed_offset
     lda #joypad_up
@@ -1238,9 +1238,9 @@ check_arrows:
 did_not_move_to_line2:
     lda #0
 up_checked:
-    .invoke sta_absolute hand_y_speed_offset
+    `sta_abs hand_y_speed_offset
     lda #joypad_up
-    .invoke sta_absolute last_y_input_accepted
+    `sta_abs last_y_input_accepted
 
     jmp check_horizontal_arrows
 
@@ -1256,9 +1256,9 @@ check_down:
     ; hand successfully moved
     ; hand_speeds_positive -> hand_y_speed_pointer
     lda #<hand_speeds_positive
-    .invoke sta_absolute hand_y_speed_pointer
+    `sta_abs hand_y_speed_pointer
     lda #>hand_speeds_positive
-    .invoke sta_absolute hand_y_speed_pointer+1
+    `sta_abs hand_y_speed_pointer+1
     ; if hand moved from 2nd to 3rd line, 32 -> hand_y_speed_offset,
     ; else 0 -> hand_y_speed_offset
     lda #joypad_down
@@ -1269,13 +1269,13 @@ check_down:
 did_not_move_to_line3:
     lda #0
 down_checked:
-    .invoke sta_absolute hand_y_speed_offset
+    `sta_abs hand_y_speed_offset
     lda #joypad_down
-    .invoke sta_absolute last_y_input_accepted
+    `sta_abs last_y_input_accepted
 
 check_horizontal_arrows:
     ; if hand_x_speed_pointer set, skip checking left/right button
-    .invoke lda_absolute hand_x_speed_pointer+1
+    `lda_abs hand_x_speed_pointer+1
     bne arrow_check_exit
 
     ; was left pressed?
@@ -1289,14 +1289,14 @@ check_horizontal_arrows:
     ; hand successfully moved
     ; hand_speeds_negative -> hand_x_speed_pointer
     lda #<hand_speeds_negative
-    .invoke sta_absolute hand_x_speed_pointer
+    `sta_abs hand_x_speed_pointer
     lda #>hand_speeds_negative
-    .invoke sta_absolute hand_x_speed_pointer+1
+    `sta_abs hand_x_speed_pointer+1
     ; 0 -> hand_x_speed_offset
     lda #0
-    .invoke sta_absolute hand_x_speed_offset
+    `sta_abs hand_x_speed_offset
     lda #joypad_left
-    .invoke sta_absolute last_x_input_accepted
+    `sta_abs last_x_input_accepted
 
     jmp arrow_check_exit
 
@@ -1312,14 +1312,14 @@ check_right:
     ; hand successfully moved
     ; hand_speeds_positive -> hand_x_speed_pointer
     lda #<hand_speeds_positive
-    .invoke sta_absolute hand_x_speed_pointer
+    `sta_abs hand_x_speed_pointer
     lda #>hand_speeds_positive
-    .invoke sta_absolute hand_x_speed_pointer+1
+    `sta_abs hand_x_speed_pointer+1
     ; 0 -> hand_x_speed_offset
     lda #0
-    .invoke sta_absolute hand_x_speed_offset
+    `sta_abs hand_x_speed_offset
     lda #joypad_right
-    .invoke sta_absolute last_x_input_accepted
+    `sta_abs last_x_input_accepted
 
 arrow_check_exit:
     rts
@@ -1487,7 +1487,7 @@ draw_next_dash:
     jsr highlight_attribute_byte  ; use attribute byte %10101010
 
     lda #2  ; no visible effect if replaced with different value
-    .invoke sta_absolute revolving_y_letter2
+    `sta_abs revolving_y_letter2
     rts
 
 ; -----------------------------------------------------------------------------
@@ -1866,7 +1866,7 @@ use_3rd_subpalette:
 subpalette_changed:
 
     ; put sprite behind background if phase is 0-6
-    .invoke ldx_absolute revolving_phase
+    `ldx_abs revolving_phase
     cpx #7
     bcs revolving_cursor_priority_bit_adjusted
     ora #%00100000
@@ -2175,9 +2175,9 @@ update_revolving_cursor:
 
     ; compute horizontal speed
     lda revolving_x
-    .invoke sta_absolute revolving_pos
+    `sta_abs revolving_pos
     lda revolving_x_target
-    .invoke sta_absolute revolving_target
+    `sta_abs revolving_target
     jsr compute_revolving_cursor_speed
     clc
     adc #128
@@ -2188,9 +2188,9 @@ update_revolving_cursor:
 
     ; compute vertical speed
     lda revolving_y
-    .invoke sta_absolute revolving_pos
+    `sta_abs revolving_pos
     lda revolving_y_target
-    .invoke sta_absolute revolving_target
+    `sta_abs revolving_target
     jsr compute_revolving_cursor_speed
     clc
     adc #128
@@ -2768,7 +2768,7 @@ letter_input_extra_effects:
     pla
     clc
     adc hand_x_letter
-    .invoke sta_absolute entered_letter
+    `sta_abs entered_letter
 
     ; spawn flying letter
     ; graphic id (see graphics_offsets):
@@ -2813,7 +2813,7 @@ letter_input_extra_effects:
 
     ; bits of entered_letter: 0000abcd
     ; 000000ab -> A, cd000000 -> sound_temp
-    .invoke lda_absolute entered_letter
+    `lda_abs entered_letter
     asl
     asl
     asl
@@ -2840,7 +2840,7 @@ letter_input_extra_effects:
     sta snd_pulse1_ramp_ctrl
 
     lda #20
-    .invoke sta_absolute flying_time_left2
+    `sta_abs flying_time_left2
 
     rts
 
