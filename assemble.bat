@@ -1,48 +1,32 @@
 @echo off
 cls
 
-rem user must have original CHR-ROM
-if not exist original-chr.bin goto nochr
+echo Assembling prg.asm to genie.prg...
+ophis -v -o genie.prg prg.asm
+echo.
 
-echo === assemble.bat: assembling ===
+echo Comparing original.prg to genie.prg...
+if exist original.prg goto hasprg
+echo warning: original.prg not found; cannot compare
 echo.
-ophis -v -o prg.bin prg.asm
-echo.
-if errorlevel 1 goto assemblyerror
-ophis -v -o gg.nes gg.asm
-echo.
-if errorlevel 1 goto assemblyerror
+goto assemblerom
+:hasprg
+fc /b original.prg genie.prg
 
-rem user must have original PRG-ROM and entire ROM to compare
-if not exist original-prg.bin goto cannotcompare
-if not exist original.nes goto cannotcompare
-
-echo === assemble.bat: comparing original files to assembled files ===
-echo.
-fc /b original-prg.bin prg.bin
-echo.
-if errorlevel 2 goto fcerror
-fc /b original.nes gg.nes
-echo.
-if errorlevel 2 goto fcerror
-
-rem success
+:assemblerom
+echo Assembling genie.asm to genie.nes...
+if exist original.chr goto haschr
+echo error: original.chr not found; cannot assemble
 goto end
+:haschr
+ophis -v -o genie.nes genie.asm
+echo.
 
-:nochr
-echo assemble.bat: error: "original-chr.bin" not found; see readme for how to get it
+echo Comparing original.nes to genie.nes...
+if exist original.nes goto hasnes
+echo warning: original.nes not found; cannot compare
 goto end
-
-:assemblyerror
-echo assemble.bat: error: assembly failed
-goto end
-
-:cannotcompare
-echo assemble.bat: warning: cannot compare to original files ("original-prg.bin", "original.nes") because they do not exist
-goto end
-
-:fcerror
-echo assemble.bat: error: FC returned an error
-goto end
+:hasnes
+fc /b original.nes genie.nes
 
 :end
