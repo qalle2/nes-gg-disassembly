@@ -19,32 +19,33 @@ However, I have *not* used earlier Game Genie disassemblies, e.g. [game-genie-di
 1. get the files described below
 1. run `assemble.bat` (only works on Windows)
 
-### Getting the Game Genie ROM
+You can also assemble the source manually instead of running `assemble.bat`:
+1. assemble the PRG-ROM: `ophis -v -o genie.prg prg.asm`
+1. assemble the entire ROM: `ophis -v -o genie.nes genie.asm`
 
-The Game Genie ROM (`genie.nes`) is required but not included.
+### Getting the Game Genie ROM
 
 1. download the compressed ROM (`genie.zip`) from [NESDev](http://nesdev.com/archive.html) or directly from [`genie.zip`](http://nesdev.com/genie.zip) (the site claims: *Galoob has ... given permission for free distribution*)
 1. extract the file (`genie.nes`)
-1. rename the file to `original.nes` (`assemble.bat` expects to find it)
-1. the file size should be 24,592 bytes
-1. the MD5 hash of the file should be `e354fb5b20e1b9fe4e5ca330f9b3391a`
+1. rename the file to `original.nes`
+1. the size should be 24,592 bytes
+1. the MD5 hash should be `e354fb5b20e1b9fe4e5ca330f9b3391a`
 
 ### Getting the original PRG-ROM data
 
-1. download and extract the Game Genie ROM (`genie.nes`) as described earlier
+1. get the Game Genie ROM as described earlier
 1. open the file in a hex editor
-1. go to offset 16 (i.e., skip the first 16 bytes)
-1. copy the following 4,096 bytes (4 KiB) to a new file
-1. save the new file as `original-prg.bin` (`assemble.bat` expects to find it)
-1. the MD5 hash of the new file should be `8d699c97d164d406c2912aece164cd32`
+1. copy 4,096 bytes starting from offset 16 to a new file
+1. save the new file as `original.prg`
+1. the MD5 hash should be `8d699c97d164d406c2912aece164cd32`
 
 ### Getting the original CHR-ROM data
 
-1. download and extract the Game Genie ROM (`genie.nes`) as described earlier
+1. get the Game Genie ROM as described earlier
 1. open the file in a hex editor
 1. copy the last 256 bytes to a new file
-1. save the new file as `original-chr.bin` (`assemble.bat` expects to find it)
-1. the MD5 hash of the new file should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
+1. save the new file as `original.chr`
+1. the MD5 hash should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
 
 ## Screenshots
 
