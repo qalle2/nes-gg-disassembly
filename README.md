@@ -23,7 +23,9 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
 
 ### Getting the Game Genie ROM
 * Download the compressed ROM from somewhere:
-  * One location: `genie.zip` at [NESDev](http://nesdev.com/archive.html) or directly from [`genie.zip`](http://nesdev.com/genie.zip); the site claims *Galoob has &hellip; given permission for free distribution*.
+  * One location: [NESDev](http://nesdev.com/archive.html); go to the link *Game Genie by Codemasters* and download `genie.zip`.
+    * The site claims: *Galoob has kindly given permission for free distribution.*
+  * Another location: [`genie.zip`](http://qalle.net/mirror/genie.zip).
 * Extract the file if it is compressed.
 * Rename the file to `original.nes`.
 * The size should be 24,592 bytes.
