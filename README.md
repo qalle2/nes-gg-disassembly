@@ -22,23 +22,22 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
     * Then, assemble the entire ROM to `genie.nes`: **`ophis -v -o genie.nes genie.asm`**
 
 ### Getting the Game Genie ROM
-* Download the compressed ROM from somewhere:
+* Download the ROM from somewhere:
   * One location: [NESDev](http://nesdev.com/archive.html); go to the link *Game Genie by Codemasters* and download `genie.zip`.
     * The site claims: *Galoob has kindly given permission for free distribution.*
-  * Another location: [`genie.zip`](http://qalle.net/mirror/genie.zip).
 * Extract the file if it is compressed.
-* Rename the file to `original.nes`.
 * The size should be 24,592 bytes.
 * The MD5 hash should be `e354fb5b20e1b9fe4e5ca330f9b3391a`.
+* Rename the file to **`original.nes`** (`assemble.bat` excepts to find it).
 
 ### Getting the original PRG-ROM data
 * Open the uncompressed Game Genie ROM file in a hex editor.
-* Copy **4,096 (0x1000) bytes** starting from **offset 16 (0x10)** to a new file, `original.prg`.
+* Copy **4,096 (0x1000) bytes** starting from **offset 16 (0x10)** to a new file, **`original.prg`** (`assemble.bat` excepts to find it).
 * The MD5 hash should be `8d699c97d164d406c2912aece164cd32`.
 
 ### Getting the original CHR-ROM data
 * Open the uncompressed Game Genie ROM file in a hex editor.
-* Copy the **last 256 (0x100)** bytes to a new file, `original.chr`.
+* Copy the **last 256 (0x100)** bytes to a new file, **`original.chr`** (`assemble.bat` excepts to find it).
 * The MD5 hash should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
 
 ## Screenshots
