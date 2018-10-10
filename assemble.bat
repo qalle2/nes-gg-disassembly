@@ -7,7 +7,7 @@ echo.
 
 echo Comparing original.prg to genie.prg...
 if exist original.prg goto hasprg
-echo warning: original.prg not found; cannot compare
+echo Warning: original.prg not found; cannot compare
 echo.
 goto assemblerom
 :hasprg
@@ -24,7 +24,7 @@ echo.
 
 echo Comparing original.nes to genie.nes...
 if exist original.nes goto hasnes
-echo warning: original.nes not found; cannot compare
+echo Warning: original.nes not found; cannot compare
 goto end
 :hasnes
 fc /b original.nes genie.nes
