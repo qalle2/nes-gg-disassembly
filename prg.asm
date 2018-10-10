@@ -585,7 +585,7 @@ set_graphics_pointer:
     ; word(graphics_pointer) += temp1 >> 7
     lda temp1
     bpl graphics_pointer_initialized
-    inc graphics_pointer+1
+    inc graphics_pointer+1            ; never accessed
 graphics_pointer_initialized:
 
     ; get offset to offset
@@ -876,7 +876,7 @@ sprite_setup_descending_hide:
     dex
     bpl convert_sprites_descending_loop
 
-    rts  ; unaccessed
+    rts  ; never accessed
 
     ; ascending order: planar sprites 0...61 -> interleaved sprites 2...63
 convert_sprites_ascending:
@@ -1604,7 +1604,7 @@ move_hand_exit:
 
 ; -----------------------------------------------------------------------------
 
-    ; read with hand_x_speed_pointer and hand_y_speed_pointer
+    ; read indirectly using hand_x_speed_pointer and hand_y_speed_pointer
 hand_speeds_positive:
     ; 4 * 16 bytes; $80 is the terminator
     .byte 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 2, 2, 2, 1, 256-1, $80  ; sum=32
@@ -2248,25 +2248,25 @@ phase_incremented:
 
 revolving_cursor_x_offsets:
     ; Sine wave in two's complement.
-    ; Values: 17 (16 accessed).
+    ; Values: 17.
     ; Amplitude: 10.
     ; Read by:
     ;   update_revolving_cursor
 
     .byte 0, 4, 7, 9, 10, 9, 7, 4
     .byte 0, 256-4, 256-7, 256-9, 256-10, 256-9, 256-7, 256-4
-    .byte 0  ; unaccessed
+    .byte 0  ; never accessed
 
 revolving_cursor_y_offsets:
     ; Inverted cosine wave in two's complement.
-    ; Values: 17 (16 accessed).
+    ; Values: 17.
     ; Amplitude: 10.
     ; Read by:
     ;   update_revolving_cursor
 
     .byte 256-10, 256-9, 256-7, 256-4, 0, 4, 7, 9
     .byte 10, 9, 7, 4, 0, 256-4, 256-7, 256-9
-    .byte 256-10  ; unaccessed
+    .byte 256-10  ; never accessed
 
 ; -----------------------------------------------------------------------------
 
@@ -3249,21 +3249,23 @@ nybbles_to_bytes_loop:
     cmp decoded_codes+0
     bne compare_to_second_code
     cpx decoded_codes+1
-    beq code_processed  ; ignore
+    beq code_processed  ; ignore the code
 
 compare_to_second_code:
     ; ignore the code if the address is the same as in the second code
     cmp decoded_codes+4
     bne compare_to_third_code
     cpx decoded_codes+4+1
-    beq code_processed  ; ignore
+    beq code_processed  ; ignore the code
 
 compare_to_third_code:
     ; ignore the code if the address is the same as in the third code
+    ; (The code is never ignored here because the address in decoded_codes
+    ; is always $ffff at this stage.)
     cmp decoded_codes+2*4
     bne accept_code
-    cpx decoded_codes+2*4+1
-    beq code_processed  ; ignore
+    cpx decoded_codes+2*4+1  ; never accessed
+    beq code_processed       ; ignore the code (never accessed)
 
 accept_code:
     ; store the code to decoded_codes
@@ -3306,24 +3308,28 @@ code_processed:
     asl compare_enable_mask
 
     ; advance source pointer
+    ; The high byte is never incremented because the low byte starts from
+    ; only $6b (the low byte of entered_letters).
     lda code_pointer+0
     clc
     adc #8
     sta code_pointer+0
     bcc code_pointer_incremented
-    inc code_pointer+1
+    inc code_pointer+1  ; never accessed
 
 code_pointer_incremented:
     ; advance target pointer
+    ; The high byte is never incremented because the low byte starts from
+    ; only $90 (the low byte of decoded_codes).
     lda decoded_codes_pointer+0
     clc
     adc #4
     sta decoded_codes_pointer+0
     bcc decoded_codes_pointer_incremented
-    inc decoded_codes_pointer+1
+    inc decoded_codes_pointer+1  ; never accessed
 decoded_codes_pointer_incremented:
 
-    ; end of the long outer loop
+    ; the end of the long outer loop
     dec codes_left_to_decode
     beq all_codes_decoded
     jmp all_codes_decode_loop
@@ -3331,7 +3337,7 @@ all_codes_decoded:
 
     ; copy a short program from ROM to RAM
     ; (for some reason, two extra bytes are copied)
-    ldx #ram_program_end-ram_program_source+1  ; bytes to copy, minus one
+    ldx #ram_program_end-ram_program_source+2-1  ; bytes to copy, minus one
 ram_program_copy_loop:
     lda ram_program_source,x
     sta ram_program_target,x
@@ -3352,8 +3358,8 @@ copy_to_genie_regs_loop:
     sta genie_values,x
     dex
     bpl copy_to_genie_regs_loop
-    ; tell the hardware which codes are enabled and if they use compare values,
-    ; then switch to game mode
+    ; tell the hardware which codes are enabled and whether they use compare
+    ; values, then switch to game mode
     lda genie_control_value
     sta genie_master_control
     lda #%00000000
@@ -3365,7 +3371,7 @@ ram_program_end:
 ; -----------------------------------------------------------------------------
 
 code_descramble_key:
-    ; how to descramble codes
+    ; how to descramble the codes
     .byte 3, 5, 2, 4, 1, 0, 7, 6
 
 ; -----------------------------------------------------------------------------
@@ -3374,10 +3380,11 @@ graphics_offsets:
     ; Offsets to actual graphics data (see below).
     ; 2 bytes each, high byte first.
     ; The constants (graphic_id_logo etc.) are used for accessing each graphic.
+    ; Read indirectly using graphics_pointer.
     ; Read by:
     ;   set_graphics_pointer
 
-    .wordbe graphic_unused - graphics_offsets
+    .wordbe graphic_unused - graphics_offsets  ; never accessed
 
     .alias graphic_id_logo [^-graphics_offsets] / 2
     .wordbe graphic_logo - graphics_offsets
@@ -3442,7 +3449,7 @@ graphics_offsets:
 ; -----------------------------------------------------------------------------
 
 ; The actual graphics data.
-; Read indirectly via graphics_pointer.
+; Read indirectly using graphics_pointer.
 ; Read by:
 ;   draw_graphic_on_background
 ;   graphic_nybble_to_vram_buffer
@@ -3458,7 +3465,7 @@ graphics_offsets:
 ;           23
 ;           01
 
-graphic_unused:  ; unaccessed (and an invalid graphic)
+graphic_unused:  ; an invalid graphic (never accessed)
     .byte 8, 2
     .byte %00000001, %00100011, %01000101, %01100111
 
@@ -3610,11 +3617,11 @@ graphic_hand:  ; hand cursor (the only graphic with an odd width)
     .byte %00000000, %01110000, %00000011, %00111011, %01110001  ; lines 0&1
     .byte %00001110, %11111111, %01010000, %00001100, %11000100  ; lines 2&3
 
-    ; unaccessed (same as lines 1-3 of the hand cursor)
+    ; same as lines 1-3 of the hand cursor (never accessed)
     .byte %00000011, %00111011, %01110001
     .byte %00001110, %11111111, %01010000, %00001100, %11000100
 
-    ; unaccessed
+    ; never accessed
     .byte %00000000, %00000000, %00000000, %00000000
     .byte %00000000, %00000000, %00000000, %00000000
     .byte %00000000, %00000000, %00000000, %10101010
@@ -3626,4 +3633,4 @@ graphic_hand:  ; hand cursor (the only graphic with an odd width)
     .word nmi              ; NMI
 reset_vector:
     .word initialization1  ; reset
-    .word $ffff            ; IRQ (unused)
+    .word $ffff            ; IRQ (never accessed)
