@@ -16,8 +16,8 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
 * Install [Ophis](http://michaelcmartin.github.io/Ophis/) (an assembler).
 * Get the files described below.
 * You have two options:
-  * Either run `assemble.bat` (only works on Windows; compares the assembled files to the originals)&hellip;
-  * &hellip;or assemble the source manually:
+  * Option 1: run `assemble.bat` (only works on Windows; also compares the assembled files to the originals).
+  * Option 2: assemble the source manually:
     * First, assemble the PRG-ROM to `genie.prg`: **`ophis -v -o genie.prg prg.asm`**
     * Then, assemble the entire ROM to `genie.nes`: **`ophis -v -o genie.nes genie.asm`**
 
