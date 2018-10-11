@@ -1,16 +1,6 @@
 # nes-gg-disassembly
 
-A disassembly of the ROM of the [Nintendo Entertainment System](http://en.wikipedia.org/wiki/Nintendo_Entertainment_System) (NES) version of the cheat cartridge [*Game Genie*](http://en.wikipedia.org/wiki/Game_Genie).
-
-## Resources and programs used
-* [NESDev Wiki](http://wiki.nesdev.com)
-  * e.g. [the Game Genie article](http://wiki.nesdev.com/w/index.php/Game_Genie)
-* [NES Game Genie Code Format DOC](http://nesdev.com/nesgg.txt)
-* [FCEUX](http://www.fceux.com) (Debugger, Code/Data Logger, etc.)
-* [`nes-sprites.lua`](http://forums.nesdev.com/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
-* a quick&dirty disassembler I wrote myself
-
-However, I have *not* used earlier Game Genie disassemblies such as [game-genie-disassembly by Kevin Selwyn](http://github.com/kevinselwyn/game-genie-disassembly) (I discovered it just before publishing my disassembly).
+A disassembly of the ROM of the [NES](http://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](http://en.wikipedia.org/wiki/Game_Genie).
 
 ## How to assemble
 * Install [Ophis](http://michaelcmartin.github.io/Ophis/) (an assembler).
@@ -153,3 +143,14 @@ The Game Genie may have been originally designed to support four codes instead o
 However:
 * There are not enough bits for four codes in `genie_master_control` (`$8000`).
 * There are no unused registers immediately after `genie_master_control`.
+
+## References
+* [NESDev Wiki](http://wiki.nesdev.com) (e.g. [the Game Genie article](http://wiki.nesdev.com/w/index.php/Game_Genie))
+* [NES Game Genie Code Format DOC](http://nesdev.com/nesgg.txt)
+
+However, I have *not* used earlier Game Genie disassemblies such as [game-genie-disassembly by Kevin Selwyn](http://github.com/kevinselwyn/game-genie-disassembly) (I discovered it just before publishing my disassembly).
+
+## Programs used
+* [FCEUX](http://www.fceux.com) (Debugger, Code/Data Logger, etc.)
+* [`nes-sprites.lua`](http://forums.nesdev.com/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
+* a quick&dirty disassembler I wrote myself
