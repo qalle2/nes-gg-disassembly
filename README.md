@@ -28,16 +28,16 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
 * Extract the file if it is compressed.
 * The size should be 24,592 bytes.
 * The MD5 hash should be `e354fb5b20e1b9fe4e5ca330f9b3391a`.
-* Rename the file to **`original.nes`** (`assemble.bat` excepts to find it).
+* Rename the file to **`original.nes`** (`assemble.bat` expects to find it).
 
 ### Getting the original PRG-ROM data
 * Open the uncompressed Game Genie ROM file in a hex editor.
-* Copy **4,096 (0x1000) bytes** starting from **offset 16 (0x10)** to a new file, **`original.prg`** (`assemble.bat` excepts to find it).
+* Copy **4,096 (0x1000) bytes** starting from **offset 16 (0x10)** to a new file, **`original.prg`** (`assemble.bat` expects to find it).
 * The MD5 hash should be `8d699c97d164d406c2912aece164cd32`.
 
 ### Getting the original CHR-ROM data
 * Open the uncompressed Game Genie ROM file in a hex editor.
-* Copy the **last 256 (0x100)** bytes to a new file, **`original.chr`** (`assemble.bat` excepts to find it).
+* Copy the **last 256 (0x100)** bytes to a new file, **`original.chr`** (`assemble.bat` expects to find it).
 * The MD5 hash should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
 
 ## Screenshots
@@ -73,28 +73,28 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
 ## Bugs
 * Sometimes, the letter or dash (`-`) under the revolving cursor on the input area does not flash.
   * How to reproduce:
-    1. boot up the ROM
-    1. observe the first dash (it does not flash)
-    1. press B
-    1. observe the first dash (it flashes)
+    * boot up the ROM
+    * observe the first dash (it does not flash)
+    * press B
+    * observe the first dash (it flashes)
 * You can sometimes delete non-final letters of the code.
   * How to reproduce:
-    1. enter `AAAAAAAA` on the last line (you need to move the cursor manually from the 6th to the 7th letter)
-    1. press B three times
-    1. observe the code (`AAAAA-AA`)
+    * enter `AAAAAAAA` on the last line (you need to move the cursor manually from the 6th to the 7th letter)
+    * press B three times
+    * observe the code (`AAAAA-AA`)
 * The bottom half of the flying letter sometimes looks corrupt and flashing.
   * How to reproduce (use pause&frame advance on an emulator for best results):
-    1. enter any two letters (e.g. `UU`)
-    1. immediately delete the last letter (press B)
-    1. immediately delete another letter (press B)
-    1. observe the bottom half of the flying letter (it is corrupt and flashes)
+    * enter any two letters (e.g. `UU`)
+    * immediately delete the last letter (press B)
+    * immediately delete another letter (press B)
+    * observe the bottom half of the flying letter (it is corrupt and flashes)
 * A variation of the previous bug: sometimes, the bottom half of the flying letter flashes and some flying particles disappear.
   * How to reproduce (use pause&frame advance on an emulator for best results):
-    1. enter two letters or more (e.g. `UUU`)
-    1. delete the last letter (press B)
-    1. immediately delete another letter (press B)
-    1. immediately enter another letter (e.g. `U`)
-    1. observe the bottom half of the flying letter (it flashes) and note the missing particles
+    * enter two letters or more (e.g. `UUU`)
+    * delete the last letter (press B)
+    * immediately delete another letter (press B)
+    * immediately enter another letter (e.g. `U`)
+    * observe the bottom half of the flying letter (it flashes) and note the missing particles
 
 The sprite-related bugs seem to be caused by some sprites being assigned to both the flying letter and the flying particles.
 
