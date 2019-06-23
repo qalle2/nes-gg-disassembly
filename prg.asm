@@ -1,18 +1,38 @@
-; PRG-ROM (4 KiB)
+; PRG ROM (4 KiB)
 
-; data segment (output disallowed)
-    .data
     .include "const-ppu.asm"
     .include "const-ram.asm"
     .include "const-reg.asm"
     .include "const-value.asm"
-    .include "macro.asm"
+
+; -----------------------------------------------------------------------------
+; Macros (to prevent the Ophis assembler from automatically optimizing
+; absolute accesses of zero page variables)
+
+.macro dec_absolute
+    .byte $ce
+    .word _1
+.macend
+
+.macro lda_absolute
+    .byte $ad
+    .word _1
+.macend
+
+.macro ldx_absolute
+    .byte $ae
+    .word _1
+.macend
+
+.macro sta_absolute
+    .byte $8d
+    .word _1
+.macend
 
 ; -----------------------------------------------------------------------------
 
-; text segment (output allowed)
-    .text
-    .org $f000  ; last 4 KiB of CPU memory space
+    ; last 4 KiB of CPU memory space
+    .org $f000
 
 initialization1:
     ; Part 1/3 of initialization.
@@ -264,7 +284,10 @@ graphic_nybble_to_vram_buffer:
     jmp got_nybble1
 get_upper_nybble1:
     lda temp1
-    `lsr4
+    lsr
+    lsr
+    lsr
+    lsr
 got_nybble1:
     sta graphic_nybble
 
@@ -288,7 +311,9 @@ got_nybble1:
     adc graphic_y_offset
     sta vram_block_y
     lda vram_block_y
-    `asl3
+    asl
+    asl
+    asl
     sta nybble_vram_low
     lda #0               ; will become nybble_vram_high
     asl nybble_vram_low  ; 4th shift
@@ -532,7 +557,8 @@ assign_metasprite_to_graphic:
     sta metasprites+1,x
 
     ; advance to indexes to individual sprites
-    `inx2
+    inx
+    inx
 
     ; assign graphic_data_left free sprites to the metasprite,
     ; starting from the first free sprite
@@ -635,7 +661,8 @@ update_metasprite:
     sta metasprite_height
 
     ; advance to start of individual sprite indexes
-    `inx2
+    inx
+    inx
 
     ; Y positions of individual sprites start from metasprite Y position
     lda metasprite_y
@@ -807,7 +834,10 @@ loop_x:
     jmp got_nybble2
 get_upper_nybble2:
     lda temp1
-    `lsr4
+    lsr
+    lsr
+    lsr
+    lsr
 got_nybble2:
     pha
 
@@ -920,7 +950,10 @@ convert_sprite:
     sta interleaved_sprite_data+1,y
     lda sprite_x_positions,x
     sta interleaved_sprite_data+3,y
-    `iny4
+    iny
+    iny
+    iny
+    iny
 
     rts
 
@@ -937,7 +970,10 @@ hide_sprite:
 
     lda #255
     sta interleaved_sprite_data,y
-    `iny4
+    iny
+    iny
+    iny
+    iny
 
     rts
 
@@ -967,7 +1003,8 @@ update_attribute_block:
 
     ; position of byte within Attribute Table (0-63) -> A, X
     lda vram_block_y
-    `asl2
+    asl
+    asl
     and #%11111000
     sta temp1
     lda vram_block_x
@@ -1897,7 +1934,9 @@ letter_input:
     ; graphic id to draw (see graphics_offsets) -> stack
     ; (hand_y_letter * 8 + hand_x_letter + 3)
     lda hand_y_letter
-    `asl3
+    asl
+    asl
+    asl
     clc
     adc hand_x_letter
     adc #3
@@ -1906,7 +1945,8 @@ letter_input:
     ; Y position of the revolving cursor in tiles -> Y
     ; (revolving_y_letter1 * 4 + 18)
     lda revolving_y_letter1
-    `asl2
+    asl
+    asl
     clc
     adc #18
     tay
@@ -1914,7 +1954,8 @@ letter_input:
     ; X position of the revolving cursor in tiles -> X
     ; (revolving_x_letter1 * 4 + 4)
     lda revolving_x_letter1
-    `asl2
+    asl
+    asl
     clc
     adc #4
     tax
@@ -1941,7 +1982,9 @@ useless_label:
 
     ; third letter on current line -> X
     lda revolving_y_letter1
-    `asl3
+    asl
+    asl
+    asl
     clc
     adc #3-1
     tax
@@ -2076,14 +2119,16 @@ erase_letter:
 
     ; revolving_y_letter1 * 4 + 18 -> Y
     lda revolving_y_letter1
-    `asl2
+    asl
+    asl
     clc
     adc #18
     tay
 
     ; revolving_x_letter1 * 4 + 4 -> X
     lda revolving_x_letter1
-    `asl2
+    asl
+    asl
     clc
     adc #4
     tax
@@ -2166,14 +2211,22 @@ update_revolving_cursor:
 
     ; revolving_y_letter1 * 32 + 152 -> revolving_y_target
     lda revolving_y_letter1
-    `asl5
+    asl
+    asl
+    asl
+    asl
+    asl
     clc
     adc #152
     sta revolving_y_target
 
     ; revolving_x1 * 32 + 10 -> revolving_x_target
     lda revolving_x_letter1
-    `asl5
+    asl
+    asl
+    asl
+    asl
+    asl
     clc
     adc #10
     sta revolving_x_target
@@ -2642,7 +2695,9 @@ spawn_particles1:
     pha
 
     ; Y * 8 + 10 -> particle_start_y
-    `asl3
+    asl
+    asl
+    asl
     clc
     adc #10
     sta particle_start_y
@@ -2654,7 +2709,9 @@ spawn_particles1:
     ; (X - 4) * 8 + 13 -> particle_start_x
     sec
     sbc #4
-    `asl3
+    asl
+    asl
+    asl
     clc
     adc #13
     sta particle_start_x
@@ -2745,7 +2802,9 @@ get_revolving_cursor_position:
 
     ; revolving_y_letter1 * 8 + revolving_x_letter1
     lda revolving_y_letter1
-    `asl3
+    asl
+    asl
+    asl
     clc
     adc revolving_x_letter1
     tax
@@ -2761,16 +2820,23 @@ letter_input_extra_effects:
 
     ; hand_x_letter * 32 -> flying_x, metasprite_x
     lda hand_x_letter
-    `asl5
+    asl
+    asl
+    asl
+    asl
+    asl
     sta flying_x
     sta metasprite_x
 
     ; hand_y_letter * 8 -> stack
     ; hand_y_letter * 32 + 64 -> flying_y, metasprite_y
     lda hand_y_letter
-    `asl3
+    asl
+    asl
+    asl
     pha
-    `asl2
+    asl
+    asl
     clc
     adc #64
     sta flying_y
@@ -2796,12 +2862,19 @@ letter_input_extra_effects:
     ; compute Y speed of flying letter (+3...+9 in increments of 2):
     ; (revolving_y_letter1 * 32 + 144 - flying_y) / 16 -> flying_y_speed
     lda revolving_y_letter1
-    `asl5
+    asl
+    asl
+    asl
+    asl
+    asl
     clc
     adc #144
     sec
     sbc flying_y
-    `lsr4
+    lsr
+    lsr
+    lsr
+    lsr
     sta flying_y_speed
 
     ; compute X speed of flying letter (-14...+14 in increments of 2):
@@ -2820,7 +2893,10 @@ letter_input_extra_effects:
     ; bits of entered_letter: 0000abcd
     ; 000000ab -> A, cd000000 -> temp1
     `lda_absolute entered_letter
-    `asl4
+    asl
+    asl
+    asl
+    asl
     sta temp1
     lda #$00
     asl temp1
@@ -3060,7 +3136,9 @@ data_setup_loop:
     lda revolving_y_letter2
     sec
     sbc #2
-    `asl3
+    asl
+    asl
+    asl
     clc
     adc #<[ppu_attribute_table+4*8]
     sta vram_block+2
@@ -3175,7 +3253,9 @@ code_decode_loop:
     ; significant position (%00000000 or %00001000)
     lda #$00
     rol
-    `asl3
+    asl
+    asl
+    asl
     sta temp2  ; LSB of previous letter
 
     ; end of first inner loop
@@ -3220,7 +3300,10 @@ nybbles_to_bytes_loop:
     ; value to high nybble
     ldy code_descramble_key,x
     lda (code_pointer),y
-    `asl4
+    asl
+    asl
+    asl
+    asl
     ; value to low nybble
     inx
     ldy code_descramble_key,x
@@ -3628,7 +3711,7 @@ graphic_hand:  ; hand cursor (the only graphic with an odd width)
 
 ; -----------------------------------------------------------------------------
 
-; interrupt vectors (at the end of the PRG-ROM and the CPU memory space)
+; interrupt vectors (at the end of the PRG ROM and the CPU memory space)
     .advance $fffa
     .word nmi              ; NMI
 reset_vector:
