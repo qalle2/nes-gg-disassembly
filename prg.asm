@@ -1013,11 +1013,11 @@ update_attribute_block:
     adc temp1
     tax
 
-    ; (start address of Attribute Table) + A -> target address of VRAM block
+    ; ppu_attribute_table + A -> VRAM block target address
     ora #<ppu_attribute_table
-    sta vram_block+2           ; address low
+    sta vram_block+2
     lda #>ppu_attribute_table
-    sta vram_block+1           ; address high
+    sta vram_block+1
 
     ; one byte to copy
     lda #1
@@ -1125,22 +1125,20 @@ clear_loop:
     `sta_absolute revolving_y
 
     ; draw hand cursor
-    lda #graphic_id_hand
+    lda #20
     jsr assign_metasprite_to_graphic  ; A = id
     `sta_absolute hand_metasprite
 
     ; draw revolving cursor
-    lda #graphic_id_revolv
+    lda #2
     jsr assign_metasprite_to_graphic  ; A = id
     `sta_absolute revolving_metasprite
 
     lda #255
     sta metasprite_y
 
-    ; initialize the letter that flies from virtual keyboard to input area
-    ; (only the dimensions matter; drawing e.g. the hand cursor will cause
-    ; the flying letter to have wrong dimensions)
-    lda #graphic_id_p
+    ; initialize the flying letter (only the dimensions of the graphic matter)
+    lda #5                            ; letter "P"
     jsr assign_metasprite_to_graphic  ; A = id
     `sta_absolute flying_metasprite
 
@@ -1155,12 +1153,14 @@ sprite_attr_copy_loop:
     lda #%00001001
     sta snd_clock
 
+    ; data size
     lda #32
-    sta vram_block+0    ; data size
+    sta vram_block+0
+    ; address
     lda #>ppu_palettes
-    sta vram_block+1    ; address high
+    sta vram_block+1
     lda #<ppu_palettes
-    sta vram_block+2    ; address low
+    sta vram_block+2
 
     ; copy initial palette from ROM to VRAM block
     ldy #0
@@ -1409,13 +1409,13 @@ set_up_background:
     sta scroll_y_mirror
 
     ; the Game Genie logo
-    lda #graphic_id_logo
+    lda #1
     ldx #5
     ldy #3
     jsr draw_graphic_on_background  ; A/X/Y = id/X/Y
 
     ; prepare to draw the virtual keyboard
-    lda #graphic_id_a
+    lda #3                  ; "A"
     sta keyboard_graphic
     lda #4
     sta keyboard_graphic_x
@@ -1445,10 +1445,10 @@ draw_keyboard_loop:
     adc #4
     sta keyboard_graphic_y
 next_keyboard_letter:
-    ; loop until the last letter (N) has been drawn
+    ; loop until the last letter ("N", id 18) has been drawn
     inc keyboard_graphic
     lda keyboard_graphic
-    cmp #graphic_id_n+1
+    cmp #18+1
     bne draw_keyboard_loop
 
     ; prepare to draw the input area (dashes)
@@ -1461,8 +1461,8 @@ next_keyboard_letter:
 
     ; draw the 24 (3*8) dashes of the input area
 draw_input_area_loop:
-    ; draw the dash
-    lda #graphic_id_dash
+    ; draw dash
+    lda #19
     ldx keyboard_graphic_x
     ldy keyboard_graphic_y
     jsr draw_graphic_on_background  ; A/X/Y = id/X/Y
@@ -2135,7 +2135,8 @@ erase_letter:
 
     jsr spawn_particles1  ; X/Y = X/Y position in tiles
 
-    lda #graphic_id_dash
+    ; draw dash
+    lda #19
     jsr draw_graphic_on_background  ; A/X/Y = id/X/Y
 
     lda #0  ; no letter
@@ -2850,11 +2851,11 @@ letter_input_extra_effects:
     `sta_absolute entered_letter
 
     ; spawn flying letter
-    ; graphic id (see graphics_offsets):
-    ;   hand_y_letter * 8 + hand_x_letter + 3
-    adc #graphic_id_a
+    ; graphic id: hand_y_letter * 8 + hand_x_letter + 3
+    ; (3 is the id for the first letter, "A")
+    adc #3
     ldx flying_metasprite
-    jsr set_up_metasprite  ; A/X = id, index to metasprite_indexes
+    jsr set_up_metasprite  ; A = id, X = index to metasprite_indexes
 
     ldx flying_metasprite
     jsr update_metasprite  ; X = metasprite index
@@ -3024,14 +3025,17 @@ color_phase_incremented:
     stx animated_color_phase
 
     ; set up VRAM block to update
+    ; data
     lda animated_colors,x
-    sta vram_block+3        ; data
+    sta vram_block+3
+    ; data size
     lda #1
-    sta vram_block+0        ; data size
-    lda #>[ppu_palettes+7]
-    sta vram_block+1        ; address high
-    lda #<[ppu_palettes+7]
-    sta vram_block+2        ; address low
+    sta vram_block+0
+    ; address
+    lda #>[ppu_palettes+4+3]
+    sta vram_block+1
+    lda #<[ppu_palettes+4+3]
+    sta vram_block+2
 
     ; copy block to buffer
     jmp vram_block_to_buffer  ; ends with rts
@@ -3111,7 +3115,7 @@ highlight_input_area_row:
 
     ; set up VRAM block to change attribute data of all rows to %11 (gray)
 
-    ; address: ppu_attribute_table + 4 * 8
+    ; address
     lda #>[ppu_attribute_table+4*8]
     sta vram_block+1
     lda #<[ppu_attribute_table+4*8]
@@ -3462,72 +3466,31 @@ code_descramble_key:
 graphics_offsets:
     ; Offsets to actual graphics data (see below).
     ; 2 bytes each, high byte first.
-    ; The constants (graphic_id_logo etc.) are used for accessing each graphic.
     ; Read indirectly using graphics_pointer.
     ; Read by:
     ;   set_graphics_pointer
 
-    .wordbe graphic_unused - graphics_offsets  ; never accessed
-
-    .alias graphic_id_logo [^-graphics_offsets] / 2
-    .wordbe graphic_logo - graphics_offsets
-
-    .alias graphic_id_revolv [^-graphics_offsets] / 2
-    .wordbe graphic_revolv - graphics_offsets
-
-    .alias graphic_id_a [^-graphics_offsets] / 2
-    .wordbe graphic_a - graphics_offsets
-
-    .alias graphic_id_e [^-graphics_offsets] / 2
-    .wordbe graphic_e - graphics_offsets
-
-    .alias graphic_id_p [^-graphics_offsets] / 2
-    .wordbe graphic_p - graphics_offsets
-
-    .alias graphic_id_o [^-graphics_offsets] / 2
-    .wordbe graphic_o - graphics_offsets
-
-    .alias graphic_id_z [^-graphics_offsets] / 2
-    .wordbe graphic_z - graphics_offsets
-
-    .alias graphic_id_x [^-graphics_offsets] / 2
-    .wordbe graphic_letter_x - graphics_offsets
-
-    .alias graphic_id_l [^-graphics_offsets] / 2
-    .wordbe graphic_l - graphics_offsets
-
-    .alias graphic_id_u [^-graphics_offsets] / 2
-    .wordbe graphic_u - graphics_offsets
-
-    .alias graphic_id_g [^-graphics_offsets] / 2
-    .wordbe graphic_g - graphics_offsets
-
-    .alias graphic_id_k [^-graphics_offsets] / 2
-    .wordbe graphic_k - graphics_offsets
-
-    .alias graphic_id_i [^-graphics_offsets] / 2
-    .wordbe graphic_i - graphics_offsets
-
-    .alias graphic_id_s [^-graphics_offsets] / 2
-    .wordbe graphic_s - graphics_offsets
-
-    .alias graphic_id_t [^-graphics_offsets] / 2
-    .wordbe graphic_t - graphics_offsets
-
-    .alias graphic_id_v [^-graphics_offsets] / 2
-    .wordbe graphic_v - graphics_offsets
-
-    .alias graphic_id_y [^-graphics_offsets] / 2
-    .wordbe graphic_letter_y - graphics_offsets
-
-    .alias graphic_id_n [^-graphics_offsets] / 2
-    .wordbe graphic_n - graphics_offsets
-
-    .alias graphic_id_dash [^-graphics_offsets] / 2
-    .wordbe graphic_dash - graphics_offsets
-
-    .alias graphic_id_hand [^-graphics_offsets] / 2
-    .wordbe graphic_hand - graphics_offsets
+    .wordbe graphic_unused   - graphics_offsets  ;  0 (never accessed)
+    .wordbe graphic_logo     - graphics_offsets  ;  1
+    .wordbe graphic_revolv   - graphics_offsets  ;  2
+    .wordbe graphic_a        - graphics_offsets  ;  3
+    .wordbe graphic_e        - graphics_offsets  ;  4
+    .wordbe graphic_p        - graphics_offsets  ;  5
+    .wordbe graphic_o        - graphics_offsets  ;  6
+    .wordbe graphic_z        - graphics_offsets  ;  7
+    .wordbe graphic_letter_x - graphics_offsets  ;  8
+    .wordbe graphic_l        - graphics_offsets  ;  9
+    .wordbe graphic_u        - graphics_offsets  ; 10
+    .wordbe graphic_g        - graphics_offsets  ; 11
+    .wordbe graphic_k        - graphics_offsets  ; 12
+    .wordbe graphic_i        - graphics_offsets  ; 13
+    .wordbe graphic_s        - graphics_offsets  ; 14
+    .wordbe graphic_t        - graphics_offsets  ; 15
+    .wordbe graphic_v        - graphics_offsets  ; 16
+    .wordbe graphic_letter_y - graphics_offsets  ; 17
+    .wordbe graphic_n        - graphics_offsets  ; 18
+    .wordbe graphic_dash     - graphics_offsets  ; 19
+    .wordbe graphic_hand     - graphics_offsets  ; 20
 
 ; -----------------------------------------------------------------------------
 
