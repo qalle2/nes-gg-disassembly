@@ -2640,27 +2640,18 @@ particle_sprite_processed:
 ; -----------------------------------------------------------------------------
 
 decrement_absolute_value:
-    ; If the number is nonzero, decrement its absolute value.
-    ; Args:
-    ;   A
-    ; Out:
-    ;   A
+    ; If A is nonzero, decrement its absolute value.
     ; Called by:
     ;   move_particles2
 
-    beq decrement_absolute_done
-    bpl decrement
+    beq ++
+    bpl +
     clc
     adc #1
-
     rts
-
-decrement:
-    sec
+*   sec
     sbc #1
-
-decrement_absolute_done:
-    rts
+*   rts
 
 ; -----------------------------------------------------------------------------
 
