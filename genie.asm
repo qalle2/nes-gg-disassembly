@@ -1,61 +1,18 @@
-; NES Game Genie disassembly by qalle
+    ; the byte to fill unused space with
+    fillvalue $ff
 
-; -----------------------------------------------------------------------------
-; iNES header
+    ; iNES header
+    inesprg 1  ; PRG ROM size: 1 * 16 KiB
+    ineschr 1  ; CHR ROM size: 1 * 8 KiB
+    inesmap 0  ; mapper: 0 (NROM)
+    inesmir 0  ; name table mirroring: horizontal
 
-    ; identifier
-    .byte "NES", $1a
-    ; PRG ROM size (16 KiB)
-    .byte 1
-    ; CHR ROM size (8 KiB)
-    .byte 1
-    ; mapper (0, NROM), mirroring (horizontal)
-    .byte %00000000, %00000000
-    ; reserved
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
+    ; PRG ROM (4,096 bytes, repeated four times)
+rept 4
+    incbin genie.prg
+endr
 
-; -----------------------------------------------------------------------------
-; PRG ROM
-
-    ; The same 4096-byte PRG ROM (assembled prg.asm) is repeated four times.
-    .incbin "genie.prg"
-    .incbin "genie.prg"
-    .incbin "genie.prg"
-    .incbin "genie.prg"
-
-; -----------------------------------------------------------------------------
-; CHR ROM
-
-    ; The same 256-byte CHR ROM is repeated 32 times.
+    ; CHR ROM (256 bytes, repeated 32 times)
+rept 32
     .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
-    .incbin "original.chr"
+endr
