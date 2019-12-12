@@ -1752,7 +1752,7 @@ letter_input:
     ; six letters on current line?
     lda revolving_x_letter1
     cmp #6
-    bne is_line_full  ; no
+    bne +  ; no
 
     ; six letters on current line
 
@@ -1768,56 +1768,50 @@ letter_input:
     lda entered_letters,x
     sub #3
     and #%00000001
-    beq complete_code_entered
+    beq code_complete
 
     lda revolving_x_letter1  ; always six, so the next branch is always taken
-is_line_full:
-    ; eight letters entered?
++   ; eight letters entered?
     cmp #8
     bne letter_input_end  ; no
-complete_code_entered:
 
-    ; a code (six or eight letters) is complete
-    ; if not on last line, move to start of next line;
-    ; otherwise, undo cursor X increment
+code_complete:
+    ; if not on last line, move to start of next line; otherwise, undo cursor X increment
     lda revolving_y_letter1
     cmp #2
     beq +
     copy #0, revolving_x_letter1
     inc revolving_y_letter1
     jmp letter_input_end
-+   dec revolving_x_letter1  ; undo cursor X increment
++   dec revolving_x_letter1
 
 letter_input_end:
-    ; move the highlight to the new letter
-    jmp highlight_input_area_letter  ; ends with rts
+    ; move the highlight to the new letter and "rts"
+    jmp highlight_input_area_letter
 
 ; --------------------------------------------------------------------------------------------------
 
 check_button_a:
+    ; If status of button A has changed from off to on, input a letter (if hand is on keyboard)
+    ; or move revolving cursor (if hand is on input area).
     ; Called by:
     ;   do_every_frame
 
     lda joypad1_status
     and #joypad_a
     cmp prev_button_a_status
-    bne button_a_status_changed
+    bne +
     rts
-
-button_a_status_changed:
-    sta prev_button_a_status
++   sta prev_button_a_status
     cmp #joypad_a
-    beq button_a_off_to_on
+    beq +
     rts
-
-button_a_off_to_on:
-    lda hand_y_letter
++   lda hand_y_letter
     cmp #2
-    bcs hand_on_input_area
-
+    bcs +
+    ; hand is on keyboard
     jmp letter_input  ; ends with rts
-
-hand_on_input_area:
++   ; hand is on input area
     jmp move_revolving_cursor_manually  ; ends with rts
 
 ; --------------------------------------------------------------------------------------------------
@@ -1826,86 +1820,78 @@ check_button_b:
     ; Called by:
     ;   do_every_frame
 
+    ; if status of button B has changed from off to on, continue, otherwise exit
     lda joypad1_status
     and #joypad_b
     cmp prev_button_b_status
-    bne button_b_status_changed
+    bne +
     rts
-
-button_b_status_changed:
-    sta prev_button_b_status
++   sta prev_button_b_status
     cmp #joypad_b
-    beq button_b_off_to_on
+    beq +
     rts
++   jmp +  ; a useless jump
 
-button_b_off_to_on:
-    jmp erase_letter_if_there_is_one  ; a useless jump
-
-erase_letter_if_there_is_one:
++   ; continue depending on where the revolving cursor is
     lda revolving_x_letter1
-    beq first_column
+    beq move_backwards_or_exit  ; on first column
     lda revolving_y_letter1
     cmp #2
-    bne non_final_row
+    bne exit_if_no_letter  ; non-last code, non-first column
 
-    ; 3rd code, non-first letter
-    ; length of third code minus one -> A
-    ; (7 if 3rd letter is E/O/X/U/K/S/V/N, otherwise 5)
-    lda entered_letters+2*8+2
+    ; non-first column, last code;
+    ; maximum length of last code minus one -> A (7 if third letter is E/O/X/U/K/S/V/N, otherwise 5)
+    lda entered_letters + 2 * 8 + 2
     sub #3
     and #%00000001
-    bne eight_letters
-    lda #5
-    bne six_letters
-eight_letters:
-    lda #7
-six_letters:
+    bne +
+    lda #6-1
+    bne ++
++   lda #8-1
+++
 
     cmp revolving_x_letter1
-    bne non_final_row  ; cursor not at last letter
+    bne exit_if_no_letter  ; cursor not on last possible letter of last code
 
-    ; cursor on last letter of 3rd code
-    tax  ; length of 3rd code - 1
-    lda entered_letters+2*8,x  ; last letter of 3rd code
-    bne erase_letter  ; is a letter
-    ; last letter of 3rd code isn't a letter??
+    ; cursor is on last possible letter of last code (revolving_x_letter1 = 5/7);
+    ; is the code of maximum length?
+    tax
+    lda entered_letters + 2 * 8, x
+    bne erase_letter  ; last code is maximum length (cursor is on last letter)
+    ; last code is maximum length minus one (cursor is on following position)
 
-non_final_row:
-    ; revolving cursor at last letter of 3rd code
-    jsr get_letter_at_revolving_cursor  ; letter -> A, position -> X
-    bne erase_letter_end  ; is a letter
+exit_if_no_letter:
+    ; ??
+    jsr get_letter_at_revolving_cursor  ; is letter zero -> Z
+    bne erase_letter_end
+    ; ??
 
-first_column:
+move_backwards_or_exit:
+    ; if on first letter of first code, exit, otherwise move cursor and erase letter
     lda revolving_x_letter1
     ora revolving_y_letter1
-    beq erase_letter_end  ; at 1st letter of 1st code, no letter to erase
+    beq erase_letter_end
     jsr move_revolving_cursor_backwards
 
 erase_letter:
-    ; get X&Y position of letter to erase, in tiles
-
-    ; revolving_y_letter1 * 4 + 18 -> Y
+    ; get position of letter to erase in tiles, store to X&Y
     lda revolving_y_letter1
     asl
     asl
     add #18
     tay
-
-    ; revolving_x_letter1 * 4 + 4 -> X
     lda revolving_x_letter1
     asl
     asl
     add #4
     tax
 
-    jsr spawn_particles1  ; X/Y = X/Y position in tiles
-
-    ; draw dash
+    ; spawn particles, draw dash on letter, mark letter as empty
+    jsr spawn_particles1
     lda #19
-    jsr draw_graphic_on_background  ; A/X/Y = id/X/Y
-
-    lda #0  ; no letter
-    jmp save_entered_letter  ; A = letter; ends with rts
+    jsr draw_graphic_on_background  ; A, X, Y = id/X/Y
+    lda #0
+    jmp save_entered_letter  ; ends with rts
 
 erase_letter_end:
     jmp move_revolving_cursor_backwards  ; a useless jump
@@ -1916,22 +1902,20 @@ move_revolving_cursor_backwards:
     ; Called by:
     ;   check_button_b
 
-    ; if at column >0:        move backwards
-    ; if at column 0, row >0: move to end of previous line
-    ; if at column 0, row 0:  do nothing
+    ; if column > 0:          move backwards
+    ; if column = 0, row > 0: move to end of previous line
+    ; if column = 0, row = 0: do nothing
     dec revolving_x_letter1
     lda revolving_x_letter1
     cmp #$ff
-    bne revolving_cursor_moved_backwards
+    bne ++
     lda revolving_y_letter1
-    beq undo_movement_backwards
+    beq +
     copy #7, revolving_x_letter1
     dec revolving_y_letter1
-    jmp revolving_cursor_moved_backwards
-undo_movement_backwards:
-    inc revolving_x_letter1
-revolving_cursor_moved_backwards:
-    jsr fix_revolving_cursor_x  ; move left to position after last letter
+    jmp ++
++   inc revolving_x_letter1
+++  jsr fix_revolving_cursor_x  ; move left to position after last letter
 
     jmp highlight_input_area_letter  ; ends with rts
 
@@ -2029,10 +2013,9 @@ update_revolving_cursor:
     ; increment phase
     inx
     cpx #16
-    bne phase_incremented
+    bne +
     ldx #0
-phase_incremented:
-    stx revolving_phase
++   stx revolving_phase
 
     ; update metasprite position
     ldx revolving_metasprite
@@ -2091,22 +2074,22 @@ compute_revolving_cursor_speed:
 too_large:
     lda revolving_target
     sub revolving_pos
+    ; shift negative number right (sign extension); why not just 3 * sec&ror?
     ldx #3
-shift_negative_right_loop:
-    sec
+-   sec
     ror
     dex
-    bne shift_negative_right_loop
+    bne -
     rts
 
 too_small:
     lda revolving_target
     sub revolving_pos
+    ; why not just 3 * lsr?
     ldx #3
-shift_positive_right_loop:
-    lsr
+-   lsr
     dex
-    bne shift_positive_right_loop
+    bne -
     add #1
     rts
 
@@ -2126,14 +2109,12 @@ accelerate_revolving_cursor:
 
     eor #%10000000
     cmp revolving_target_speed
-    bcc speed_too_small
-    beq speed_adjusted
+    bcc +   ; speed too small
+    beq ++
     sbc #1
-    jmp speed_adjusted
-speed_too_small:
-    adc #1
-speed_adjusted:
-    eor #%10000000
+    jmp ++
++   adc #1
+++  eor #%10000000
     rts
 
 ; --------------------------------------------------------------------------------------------------
@@ -2148,7 +2129,7 @@ spawn_particles2:
     ;   spawn_particles1
 
     lda particle_set_flag
-    beq spawn_set0
+    beq +
 
     ; flip flag, spawn set #1
     copy #0, particle_set_flag
@@ -2157,8 +2138,7 @@ spawn_particles2:
     copy #1, particle_set2_timer
     rts
 
-spawn_set0:
-    ; flip flag, spawn set #0
++   ; flip flag, spawn set #0
     copy #1, particle_set_flag
     ldx #32
     jsr spawn_particles3  ; X = index to sprite data
@@ -2193,37 +2173,31 @@ spawn_particles3:
     ;   spawn_particles2
 
     ldy #0  ; particle index
-particle_loop:
-    ; X position
+-   ; X position
     lda initial_particle_speeds_x,y
     add particle_start_x
     sta sprite_x_positions,x
-
     ; Y position
     lda initial_particle_speeds_y,y
     add particle_start_y
     sta sprite_y_positions,x
-
     ; X speed
     lda initial_particle_speeds_x,y
     sta particle_speeds_x,x
-
     ; Y speed
     lda initial_particle_speeds_y,y
     sta particle_speeds_y,x
-
     ; tile
     lda #$01
     sta sprite_tiles,x
-
     ; attribute (unused bits %110, palette %10)
     lda #%00011010
     sta sprite_attributes,x
-
+    ; loop counters
     inx
     iny
     cpy #16
-    bne particle_loop
+    bne -
 
     ; make noise
     copy #%00001110, snd_noise_freq1
@@ -2242,12 +2216,12 @@ move_particles:
 
     ; stop noise if particle_time_left goes to 0
     lda particle_time_left
-    beq process_particle_set1
+    beq +
     dec particle_time_left
-    bne process_particle_set1
+    bne +
     copy #%00110000, snd_noise_ctrl1
-process_particle_set1:
-    ; process 1st set of particles (from every 2nd explosion)
+
++   ; process 1st set of particles (from every 2nd explosion)
     lda particle_set1_timer
     beq process_particle_set2
     ldx #32
@@ -2256,19 +2230,18 @@ process_particle_set1:
     cmp #24
     beq hide_particle_set1
     jsr move_particles2  ; A/X = timer, index to sprite data
+
 process_particle_set2:
     ; process 2nd set of particles (from every 2nd explosion)
     lda particle_set2_timer
-    beq move_particles_exit
+    beq +
     ldx #48
     inc particle_set2_timer
     lda particle_set2_timer
     cmp #24
     beq hide_particle_set2
     jsr move_particles2  ; A/X = timer, index to sprite data
-
-move_particles_exit:
-    rts
++   rts
 
 hide_particle_set1:
     copy #0, particle_set1_timer
@@ -2293,11 +2266,11 @@ move_particles2:
     sta temp1
 
     ldy #16
-particle_sprite_loop:
+particle_loop:
     ; if sprite is hidden, skip it
     lda sprite_y_positions,x
     cmp #255
-    beq particle_sprite_processed
+    beq particle_processed
 
     ; change palette
     lda sprite_attributes,x
@@ -2306,35 +2279,35 @@ particle_sprite_loop:
 
     ; detect underflow/overflow of X position
     lda particle_speeds_x,x
-    bpl particle_moving_right
-    ; particle is moving left
+    bpl +
+    ; moving left
     clc
     adc sprite_x_positions,x
-    bcs particle_x_checked
+    bcs ++
     jmp hide_particle
-particle_moving_right:
++   ; moving right
     clc
     adc sprite_x_positions,x
-    bcc particle_x_checked
+    bcc ++
 hide_particle:
-    ; underflow/overflow of X/Y position; hide sprite and move on
+    ; X/Y position underflow/overflow; hide sprite and move on
     lda #$ff
     sta sprite_y_positions,x
     lda #$00
     sta sprite_attributes,x
-    jmp particle_sprite_processed
-particle_x_checked:
-    sta sprite_x_positions,x
+    jmp particle_processed
 
-    ; detect underflow/overflow of Y position
+++  sta sprite_x_positions,x
+
+    ; detect Y position underflow/overflow
     lda particle_speeds_y,x
-    bpl particle_moving_down
-    ; particle is moving up
+    bpl +
+    ; moving up
     clc
     adc sprite_y_positions,x
     bcs particle_y_checked
     jmp hide_particle
-particle_moving_down:
++   ; moving down
     clc
     adc sprite_y_positions,x
     bcs hide_particle
@@ -2343,7 +2316,7 @@ particle_y_checked:
 
     ; slow particle down every 8th frame
     lda temp1  ; timer modulo 8
-    bne particle_sprite_processed
+    bne particle_processed
     lda particle_speeds_x,x
     jsr decrement_absolute_value  ; A: value to decrement
     sta particle_speeds_x,x
@@ -2351,16 +2324,19 @@ particle_y_checked:
     jsr decrement_absolute_value  ; A: value to decrement
     sta particle_speeds_y,x
 
-particle_sprite_processed:
+particle_processed:
     inx
     dey
-    bne particle_sprite_loop
+    bne particle_loop
     rts
 
 ; --------------------------------------------------------------------------------------------------
 
 decrement_absolute_value:
-    ; If A is nonzero, decrement its absolute value.
+    ; If number is nonzero, decrement absolute value.
+    ; In:
+    ;   A: number to decrement
+    ;   N, Z: reflect A
     ; Called by:
     ;   move_particles2
 
@@ -2379,14 +2355,13 @@ hide_particle_set:
     ;   move_particles
 
     ldy #16
-hide_particle_set_loop:
-    lda #%00000000
+-   lda #%00000000
     sta sprite_attributes,x
     lda #255
     sta sprite_y_positions,x
     inx
     dey
-    bne hide_particle_set_loop
+    bne -
     rts
 
 ; --------------------------------------------------------------------------------------------------
@@ -2456,20 +2431,18 @@ fix_revolving_cursor_x:
     ;   move_revolving_cursor_manually
 
     jsr get_revolving_cursor_position  ; 0...23 -> X
-    ; exit if revolving cursor at left column or there's a letter at cursor
+    ; exit if revolving cursor at column 0 or letter at cursor
     lda revolving_x_letter1
-    beq revolving_cursor_x_fixed
+    beq ++
     lda entered_letters,x
-    bne revolving_cursor_x_fixed
+    bne ++
     ; move revolving cursor left until at column 0 or letter at cursor
-read_letters_loop:
-    dex
+-   dex
     lda entered_letters,x
-    bne revolving_cursor_x_fixed
+    bne ++
     dec revolving_x_letter1
-    bne read_letters_loop
-revolving_cursor_x_fixed:
-    rts
+    bne -
+++  rts
 
 ; --------------------------------------------------------------------------------------------------
 
@@ -2477,6 +2450,7 @@ get_letter_at_revolving_cursor:
     ; Out:
     ;   A: letter
     ;   X: cursor position (0...23)
+    ;   Z: reflects A
     ; Called by:
     ;   check_button_b
     ;   spawn_particles1
@@ -2602,26 +2576,23 @@ move_flying_letter:
     ;   do_every_frame
 
     lda flying_time_left2
-    beq move_flying_letter_bra1
+    beq +
     dec flying_time_left2
-    bne move_flying_letter_bra1
+    bne +
     ; flying_time_left2 went from 1 to 0
     copy #%00110000, snd_pulse1_ctrl
-move_flying_letter_bra1:
-    lda flying_time_left1
-    bne move_flying_letter_bra2
++   lda flying_time_left1
+    bne +
     rts
 
-move_flying_letter_bra2:
-    dec flying_time_left1
-    bne move_flying_letter_bra3
++   dec flying_time_left1
+    bne +
     ; flying_time_left went from 1 to 0
     ldx flying_metasprite
     copy #255, metasprite_y
     jmp update_metasprite  ; X = metasprite index; ends with rts
 
-move_flying_letter_bra3:
-    ; update flying cursor X position
++   ; update flying cursor X position
     lda flying_x
     add flying_x_speed
     sta flying_x
@@ -2649,19 +2620,18 @@ fill_attribute_table_rows:
     sta attribute_fill_byte
     sty vram_block_y
     stx rows_left
-fill_attribute_table_rows_loop:
+--  ; fill one row
     lda #$00
-fill_attribute_table_row_loop:
-    sta vram_block_x
+-   sta vram_block_x
     jsr update_attribute_block
     lda vram_block_x
     add #1
     cmp #16
-    bne fill_attribute_table_row_loop
+    bne -
     ; next row
     inc vram_block_y
     dec rows_left
-    bne fill_attribute_table_rows_loop
+    bne --
     rts
 
 ; --------------------------------------------------------------------------------------------------
@@ -2677,16 +2647,14 @@ animate_color:
     ldy animated_color_delay
     iny
     cpy #5
-    bne color_change_delay_incremented
+    bne +
     ldy #0
     inx
-color_change_delay_incremented:
-    sty animated_color_delay
++   sty animated_color_delay
     cpx #8
-    bne color_phase_incremented
+    bne +
     ldx #0
-color_phase_incremented:
-    stx animated_color_phase
++   stx animated_color_phase
 
     ; set up VRAM block to update
     ; data
@@ -2770,7 +2738,7 @@ highlight_input_area_row:
     ; exit if Y position of revolving cursor has not changed
     lda revolving_y_letter2_prev
     cmp revolving_y_letter2
-    beq highlight_input_area_row_exit
+    beq highlight_exit
 
     ; set up VRAM block to change attribute data of all rows to %11 (gray)
 
@@ -2779,12 +2747,11 @@ highlight_input_area_row:
     copy #<(ppu_attribute_table + 4 * 8), vram_block+2
     ; data: 32 bytes, all %11111111
     ldy #4*8-1
-data_setup_loop:
-    lda #%11111111
+-   lda #%11111111
     sta vram_block+3,y  ; vram_block+3 = start of data
     sta $0400+32,y
     dey
-    bpl data_setup_loop
+    bpl -
     ; data size
     copy #32, vram_block+0
     ; copy
@@ -2803,37 +2770,33 @@ data_setup_loop:
     copy #>(ppu_attribute_table + 4 * 8), vram_block+1
     ; data: 16 bytes from input_area_row_attributes
     ldy #2*8-1
-data_setup_loop2:
-    lda input_area_row_attributes,y
+-   lda input_area_row_attributes,y
     sta vram_block+3,y
     dey
-    bpl data_setup_loop2
+    bpl -
     copy #16, vram_block+0    ; data size
     jsr vram_block_to_buffer  ; copy
 
-highlight_input_area_row_exit:
+highlight_exit:
     rts
 
 ; --------------------------------------------------------------------------------------------------
 
 check_select_and_start:
+    ; If select or start pressed, decode entered codes and start game.
     ; Called by:
     ;   do_every_frame
 
-    ; If neither pressed, allow them next time and return.
-    ; If either pressed but not allowed, just return.
-    ; If either pressed and allowed, decode entered codes and start game.
+    ; If neither pressed, allow them next time and exit.
+    ; If either pressed but not allowed, just exit.
+    ; If either pressed and allowed, continue.
     lda joypad1_status
-    and #joypad_select|joypad_start
-    bne select_or_start_pressed
+    and #(joypad_select | joypad_start)
+    bne +
     copy #1, temp2  ; allow select/start
-
-check_select_and_start_exit:
-    rts
-
-select_or_start_pressed:
-    lda temp2  ; allow select/start?
-    beq check_select_and_start_exit
+-   rts
++   lda temp2  ; allow select/start?
+    beq -
 
     ; disable rendering
     lda #%00000000
@@ -2855,10 +2818,9 @@ select_or_start_pressed:
     ; fill decoded_codes with $ff (why 16 bytes?)
     ldx #16-1
     lda #$ff
-decoded_codes_clear_loop:
-    sta decoded_codes,x
+-   sta decoded_codes,x
     dex
-    bpl decoded_codes_clear_loop
+    bpl -
 
     ; number of codes to decode
     copy #3, codes_left_to_decode
@@ -2926,13 +2888,12 @@ code_decoded:
 eight_letter_code:
     ldy #3
     lda (code_pointer),y
-    jmp valid_code_length
+    jmp +
 six_letter_code:
     ldy #3
     lda (code_pointer),y
 
-valid_code_length:
-    ; copy the bit that got shifted out from the last value, to the 4th-least
++   ; copy the bit that got shifted out from the last value, to the 4th-least
     ; significant position of the 1st value; thus, the values will have been
     ; rotated instead of shifted
     ldy #0
@@ -2979,37 +2940,33 @@ nybbles_to_bytes_loop:
 
     ; ignore the code if the address is the same as in the first code
     cmp decoded_codes+0
-    bne compare_to_second_code
+    bne +
     cpx decoded_codes+1
     beq code_processed  ; ignore the code
 
-compare_to_second_code:
-    ; ignore the code if the address is the same as in the second code
++   ; ignore the code if the address is the same as in the second code
     cmp decoded_codes+4
-    bne compare_to_third_code
+    bne +
     cpx decoded_codes+4+1
     beq code_processed  ; ignore the code
 
-compare_to_third_code:
-    ; ignore the code if the address is the same as in the third code
++   ; ignore the code if the address is the same as in the third code
     ; (The code is never ignored here because the address in decoded_codes
     ; is always $ffff at this stage.)
     cmp decoded_codes+2*4
-    bne accept_code
+    bne +
     cpx decoded_codes+2*4+1  ; never accessed
     beq code_processed       ; ignore the code (never accessed)
 
-accept_code:
-    ; store the code to decoded_codes
++   ; store the code to decoded_codes
     ; (note: the replace value and the compare value trade places)
 
     ; address
     ldy #1
-copy_address_loop:
-    lda decoded_code,y
+-   lda decoded_code,y
     sta (decoded_codes_pointer),y
     dey
-    bpl copy_address_loop
+    bpl -
     ; replace value
     ldy #3
     lda decoded_code-1,y
@@ -3026,10 +2983,9 @@ copy_address_loop:
     and code_enable_mask
     ldx code_length
     cpx #8
-    bne not_eight_letter_code
-    ora compare_enable_mask
-not_eight_letter_code:
-    sta genie_control_value
+    bne +
+    ora compare_enable_mask  ; 8-letter code
++   sta genie_control_value
 
 code_processed:
     ; prepare for the next code
@@ -3045,34 +3001,30 @@ code_processed:
     lda code_pointer+0
     add #8
     sta code_pointer+0
-    bcc code_pointer_incremented
+    bcc +
     inc code_pointer+1  ; never accessed
 
-code_pointer_incremented:
-    ; advance target pointer
++   ; advance target pointer
     ; The high byte is never incremented because the low byte starts from
     ; only $90 (the low byte of decoded_codes).
     lda decoded_codes_pointer+0
     add #4
     sta decoded_codes_pointer+0
-    bcc decoded_codes_pointer_incremented
+    bcc +
     inc decoded_codes_pointer+1  ; never accessed
-decoded_codes_pointer_incremented:
 
-    ; the end of the long outer loop
++   ; the end of the long outer loop
     dec codes_left_to_decode
-    beq all_codes_decoded
+    beq +
     jmp all_codes_decode_loop
-all_codes_decoded:
 
-    ; copy a short program from ROM to RAM
++   ; copy a short program from ROM to RAM
     ; (for some reason, two extra bytes are copied)
     ldx #ram_program_end-ram_program_source+2-1  ; bytes to copy, minus one
-ram_program_copy_loop:
-    lda ram_program_source,x
+-   lda ram_program_source,x
     sta ram_program_target,x
     dex
-    bpl ram_program_copy_loop
+    bpl -
 
     ; execute the program in RAM
     jmp ram_program_target
@@ -3083,11 +3035,10 @@ ram_program_copy_loop:
 ram_program_source:
     ; copy decoded codes to Game Genie registers ($8001-$800c)
     ldx #3*4-1
-copy_to_genie_regs_loop:
-    lda decoded_codes,x
+-   lda decoded_codes,x
     sta genie_values,x
     dex
-    bpl copy_to_genie_regs_loop
+    bpl -
     ; tell the hardware which codes are enabled and whether they use compare
     ; values, then switch to game mode
     copy genie_control_value, genie_master_control
