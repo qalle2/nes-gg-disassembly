@@ -1,14 +1,9 @@
 @echo off
-choice /c NY /m "This batch file will DELETE some files. Continue"
-if not errorlevel 2 goto end
-
 cls
 
 echo === assemble.bat: assembling prg.asm ===
-rem export FCEUX-compatible .nl files
-asm6f -n prg.asm genie.prg
+asm6f prg.asm genie.prg
 if errorlevel 1 goto error
-if exist genie.nes.ram.nl del genie.nes.ram.nl
 echo.
 
 echo === assemble.bat: comparing original.prg to genie.prg ===
