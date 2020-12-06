@@ -1,36 +1,19 @@
 # nes-gg-disassembly
-
-A disassembly of the ROM of the [NES](http://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](http://en.wikipedia.org/wiki/Game_Genie).
+A disassembly of the ROM of the [NES](http://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](http://en.wikipedia.org/wiki/Game_Genie). Assembles with [ASM6](https://github.com/qalle2/asm6/).
 
 ## How to assemble
-* Install the asm6f assembler:
-  * [GitHub page](https://github.com/freem/asm6f)
-  * [64-bit Windows binary](http://qallee.net/misc/asm6f-win64.zip) (compiled by me)
-* Get the files described below.
-* You have two options:
-  * Option 1: run `assemble.bat` (only works on Windows; also compares the assembled files to the originals).
-  * Option 2: assemble the source manually:
-    * First, assemble the PRG ROM to `genie.prg`: `asm6f prg.asm genie.prg`
-    * Then, assemble the entire ROM to `genie.nes`: `asm6f genie.asm genie.nes`
-
-### Getting the Game Genie ROM
-* Download the ROM from somewhere:
-  * One location: [NESDev](http://nesdev.com/archive.html); go to the link *Game Genie by Codemasters* and download `genie.zip`.
-    * The site claims: *Galoob has kindly given permission for free distribution.*
-* Extract the file if it is compressed.
-* The size should be 24,592 bytes.
-* The MD5 hash should be `e354fb5b20e1b9fe4e5ca330f9b3391a`.
-* Rename the file to **`original.nes`** (`assemble.bat` expects to find it).
-
-### Getting the original PRG ROM data
-* Open the uncompressed Game Genie ROM file in a hex editor.
-* Copy **4,096 (0x1000) bytes** starting from **offset 16 (0x10)** to a new file, **`original.prg`** (`assemble.bat` expects to find it).
-* The MD5 hash should be `8d699c97d164d406c2912aece164cd32`.
-
-### Getting the original CHR ROM data
-* Open the uncompressed Game Genie ROM file in a hex editor.
-* Copy the **last 256 (0x100)** bytes to a new file, **`original.chr`** (`assemble.bat` expects to find it).
-* The MD5 hash should be `0a0b0b2ed4f45699a0d27cd6ddb4d906`
+* Download the original Game Genie ROM and rename it to **`original.nes`**.
+  * One location: [NESDev](http://nesdev.com/archive.html) (go to the link *Game Genie by Codemasters* and download `genie.zip`). The site claims: *Galoob has kindly given permission for free distribution.*
+* Copy the CHR ROM data from the original Game Genie ROM to a new file, **`original.chr`**.
+  * Either use `ines_split.py` from my [NES utilities](https://github.com/qalle2/nes-util)&hellip;
+  * &hellip;or open the ROM in a hex editor and copy the last 256 bytes to a new file.
+* Assemble and verify that the reassembled file is identical to the original:
+  * Either run the Linux script `assemble`&hellip;
+  * &hellip;or run:
+    * `asm6 prg.asm genie.prg`
+    * `asm6 genie.asm genie.nes`
+    * `diff original.nes genie.nes` (on Linux)
+    * `fc /b original.nes genie.nes` (on Windows)
 
 ## Screenshots
 
@@ -157,3 +140,4 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
 * [FCEUX](http://www.fceux.com) (Debugger, Code/Data Logger, etc.)
 * [`nes-sprites.lua`](http://forums.nesdev.com/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
 * a quick&amp;dirty disassembler I wrote myself
+
