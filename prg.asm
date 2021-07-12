@@ -286,8 +286,7 @@ endm
         ; last 4 KiB of CPU memory space
         base $f000
 
-initialization1
-        ; Part 1/3 of initialization.
+init1   ; part 1/3 of initialization
 
         sei                        ; ignore IRQs
         cld                        ; disable decimal mode
@@ -303,12 +302,12 @@ initialization1
         jsr delay
         sta genie_unknown1
 
-        jmp initialization2  ; continue initialization
+        jmp init2  ; continue initialization
 
 ; -------------------------------------------------------------------------------------------------
 
         ; Wait.
-        ; Called by: initialization1
+        ; Called by: init1
 
 delay   ldx #96
         ldy #8
@@ -320,8 +319,7 @@ delay   ldx #96
 
 ; -------------------------------------------------------------------------------------------------
 
-initialization2
-        ; Part 2/3 of initialization.
+init2   ; part 2/3 of initialization
 
         ; wait for VBlank 10 times
         ldx #10
@@ -357,7 +355,7 @@ initialization2
 
         dec_absolute vram_buffer_free_bytes  ; set to 255
 
-        jmp initialization3  ; continue initialization
+        jmp init3  ; continue initialization
 
 ; -------------------------------------------------------------------------------------------------
 
@@ -436,7 +434,7 @@ draw_graphic_on_background
         ;   A: graphic id (see graphics_offsets)
         ;   X: horizontal position, in tiles
         ;   Y: vertical   position, in tiles
-        ; Called by: set_up_background, letter_input, check_button_b
+        ; Called by: init_background, letter_input, check_button_b
 
         stx graphic_x
         sty graphic_y
@@ -534,9 +532,9 @@ graphic_nybble_to_vram_buffer
         sta nybble_vram_low
         lda #0               ; will become nybble_vram_high
         asl nybble_vram_low  ; 4th shift
-        rol                  ; save overflown bit
+        rol                  ; save overflowed bit
         asl nybble_vram_low  ; 5th shift
-        rol                  ; save overflown bit
+        rol                  ; save overflowed bit
         add vram_address_high
         sta nybble_vram_high
 
@@ -581,7 +579,7 @@ multiply
 
 sprite_dma
         ; Copy interleaved_sprite_data to OAM.
-        ; Called by: nmi, initialization3
+        ; Called by: nmi, init3
 
         copy #$00, oam_addr
         copy #>interleaved_sprite_data, oam_dma
@@ -649,8 +647,8 @@ vram_copy_end
 
 vram_block_to_buffer
         ; Copy current VRAM block to VRAM buffer.
-        ; Called by: graphic_nybble_to_vram_buffer, update_attribute_block, initialization3,
-        ;     animate_color, highlight_input_area_row
+        ; Called by: graphic_nybble_to_vram_buffer, update_attribute_block, init3, animate_color,
+        ;     highlight_input_area_row
 
         ; VRAM block total size -> temp1
         lda vram_block + 0
@@ -693,7 +691,7 @@ assign_metasprite_to_graphic
         ; Draw a graphic (e.g. the hand cursor) as a metasprite.
         ; Arg: A: graphic id (see graphics_offsets)
         ; Out: A: index to metasprite_indexes
-        ; Called by: initialization3
+        ; Called by: init3
 
         ; start reading specified graphic
         sta graphic_id
@@ -1125,7 +1123,7 @@ attribute_block_bitmasks
 ; -------------------------------------------------------------------------------------------------
 
         ; Initial palette. 32 bytes.
-        ; Read by: initialization3
+        ; Read by: init3
 
         ; background subpalette 0
 initpal db color_background, color_unused1, color_unused1, color_keyboard
@@ -1147,8 +1145,7 @@ initpal db color_background, color_unused1, color_unused1, color_keyboard
         ; sprite subpalette 3
         db color_unused1, color_unused1, color_unused1, color_unused2
 
-initialization3
-        ; Part 3/3 of initialization.
+init3   ; part 3/3 of initialization
 
         copy #1, skip_nmi
 
@@ -1166,7 +1163,7 @@ initialization3
         dex
         bne -
 
-        jsr set_up_background
+        jsr init_background
 
         ; clear metasprite_indexes (why? we just cleared the entire RAM)
         ldx #0
@@ -1251,7 +1248,7 @@ initialization3
 
 wait_until_nmi_done
         ; Wait until the NMI routine has run.
-        ; Called by: initialization3, main_loop
+        ; Called by: init3, main_loop
 
         ; clear the flag
         lda #0
@@ -1436,9 +1433,9 @@ find_free_metasprite
 
 ; -------------------------------------------------------------------------------------------------
 
-set_up_background
+init_background
         ; Initialize background graphics.
-        ; Called by: initialization3
+        ; Called by: init3
 
         ; center background graphics vertically by scrolling
         copy #0, scroll_x_mirror
@@ -1785,8 +1782,8 @@ update_attribute_byte
         ;   X: horizontal position (0-7)
         ;   Y: vertical   position (0-1 = virtual keyboard, 2-4 = input area)
         ; Alternative entry points: highlight_attribute_byte, clear_attribute_byte
-        ; Called by (incl. alternative entry points): set_up_background,
-        ;     update_hand_letter_position, highlight_input_area_letter
+        ; Called by (incl. alternative entry points): init_background, update_hand_letter_position,
+        ;     highlight_input_area_letter
 
         sta attribute_fill_byte
         ; get attribute block X
@@ -2790,7 +2787,7 @@ fill_attribute_table_rows
         ;   A: fill byte
         ;   X: number of rows
         ;   Y: first row
-        ; Called by: set_up_background
+        ; Called by: init_background
 
         sta attribute_fill_byte
         sty vram_block_y
@@ -3422,7 +3419,7 @@ graphic_hand  ; hand cursor (the only graphic with an odd width)
 ; --- Interrupt vectors ---------------------------------------------------------------------------
 
         pad $fffa, $ff
-        dw nmi              ; NMI
-rstvect dw initialization1  ; reset
-        dw $ffff            ; IRQ (never accessed)
+        dw nmi    ; NMI
+rstvect dw init1  ; reset
+        dw $ffff  ; IRQ (never accessed)
 

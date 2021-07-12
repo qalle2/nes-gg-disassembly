@@ -1,26 +1,29 @@
 ; NES Game Genie disassembly (ASM6)
 
-; --- iNES header ---------------------------------------------------------------------------------
+; --- iNES header ----------------------------------------------------------------------------------
 
-    ; https://wiki.nesdev.com/w/index.php/INES
+        ; https://wiki.nesdev.com/w/index.php/INES
 
-    base 0
-    db "NES", $1a            ; file id
-    db 1, 1                  ; 16 KiB PRG ROM, 8 KiB CHR ROM
-    db %00000000, %00000000  ; NROM mapper, horizontal mirroring
-    pad $0010, 0             ; unused
+        base $0000
+        db "NES", $1a            ; file id
+        db 1, 1                  ; 16 KiB PRG ROM, 8 KiB CHR ROM
+        db %00000000, %00000000  ; mapper 0 (NROM), horizontal mirroring
+        pad $0010, $00           ; unused
 
-; --- PRG ROM -------------------------------------------------------------------------------------
+; --- PRG ROM --------------------------------------------------------------------------------------
 
-    ; 4 KiB, repeated 4 times
+        ; 4 * 4 KiB
+        base $0000
 rept 4
-    incbin genie.prg
+        incbin "genie.prg"
 endr
+        pad $4000
 
-; --- CHR ROM -------------------------------------------------------------------------------------
+; --- CHR ROM --------------------------------------------------------------------------------------
 
-    ; 256 bytes, repeated 32 times
+        ; 32 * 256 bytes
+        base $0000
 rept 32
-    incbin "original.chr"
+        incbin "original.chr"
 endr
-
+        pad $2000
