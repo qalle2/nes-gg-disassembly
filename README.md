@@ -8,7 +8,7 @@ A disassembly of the ROM of the [NES](http://en.wikipedia.org/wiki/Nintendo_Ente
   * Either use `ines_split.py` from my [NES utilities](https://github.com/qalle2/nes-util)&hellip;
   * &hellip;or open the ROM in a hex editor and copy the last 256 bytes to a new file.
 * Assemble and verify that the reassembled file is identical to the original:
-  * Either run the Linux script `assemble`&hellip;
+  * Either run the Linux script `assemble.sh`&hellip;
   * &hellip;or run:
     * `asm6 prg.asm genie.prg`
     * `asm6 genie.asm genie.nes`
@@ -140,4 +140,3 @@ However, I have *not* used earlier Game Genie disassemblies such as [game-genie-
 * [FCEUX](http://www.fceux.com) (Debugger, Code/Data Logger, etc.)
 * [`nes-sprites.lua`](http://forums.nesdev.com/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
 * a quick&amp;dirty disassembler I wrote myself
-
