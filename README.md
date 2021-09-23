@@ -74,36 +74,115 @@ A disassembly of the ROM of the [NES](http://en.wikipedia.org/wiki/Nintendo_Ente
 The sprite-related bugs seem to be caused by some sprites being assigned to both the flying letter and the flying particles.
 
 ## FCEUX Code/Data log
-I created a `.cdl` file of the ROM by using FCEUX Code/Data Logger.
-Then I converted it to a human-readable format using my [`cdl-summary`](http://github.com/qalle2/cdl-summary) and edited it slightly.
-The columns are: start address (hexadecimal), end address (hexadecimal), length (decimal), description.
-Note that there are only 41 unaccessed bytes (excluding the unused IRQ vector).
+I created a code/data log file (`.cdl`) of the ROM using the Code/Data Logger in FCEUX.
+The file is in `gamegenie.cdl.gz` (gz compressed).
+
+I also converted the CDL file into a human-readable format using my [cdl-summary](http://github.com/qalle2/cdl-summary) with the arguments `--prg-size 16` and `--bank-size 16`.
+The unedited result is in `cdl-summary-raw.txt`.
+
+Below is the manually-edited data.
+The columns are: CPU address range (hexadecimal), length (decimal), description.
 
 ```
-f000-f245 (582): code
+f000-f028 ( 41): code
+f029-f029 (  1): code, data
+f02a-f10d (228): code
+f10e-f10e (  1): code, data
+f10f-f179 (107): code
+f17a-f17a (  1): code, data
+f17b-f1b8 ( 62): code
+f1b9-f1b9 (  1): code, data
+f1ba-f245 (140): code
 f246-f247 (  2): unaccessed
-f248-f374 (301): code
+f248-f25a ( 19): code
+f25b-f25b (  1): code, data
+f25c-f2a7 ( 76): code
+f2a8-f2a8 (  1): code, data
+f2a9-f2b8 ( 16): code
+f2b9-f2b9 (  1): code, data
+f2ba-f330 (119): code
+f331-f331 (  1): code, data
+f332-f374 ( 67): code
 f375-f375 (  1): unaccessed
-f376-f3fa (133): code
+f376-f3b4 ( 63): code
+f3b5-f3b5 (  1): code, data
+f3b6-f3fa ( 69): code
 f3fb-f41e ( 36): data
-f41f-f6fe (736): code
+f41f-f41f (  1): code, data
+f420-f4bf (160): code
+f4c0-f4c0 (  1): code, data
+f4c1-f52c (108): code
+f52d-f52d (  1): code, data
+f52e-f55c ( 47): code
+f55d-f55d (  1): code, data
+f55e-f564 (  7): code
+f565-f565 (  1): code, data
+f566-f5ae ( 73): code
+f5af-f5af (  1): code, data
+f5b0-f69f (240): code
+f6a0-f6a0 (  1): code, data
+f6a1-f6d5 ( 53): code
+f6d6-f6d6 (  1): code, data
+f6d7-f6fa ( 36): code
+f6fb-f6fb (  1): code, data
+f6fc-f6fe (  3): code
 f6ff-f77e (128): data (indirectly accessed)
-f77f-f842 (196): code
+f77f-f7e3 (101): code
+f7e4-f7e4 (  1): code, data
+f7e5-f7eb (  7): code
+f7ec-f7ec (  1): code, data
+f7ed-f842 ( 86): code
 f843-f856 ( 20): data
-f857-fa0c (438): code
+f857-f857 (  1): code, data
+f858-f864 ( 13): code
+f865-f865 (  1): code, data
+f866-f87a ( 21): code
+f87b-f87b (  1): code, data
+f87c-f8a4 ( 41): code
+f8a5-f8a5 (  1): code, data
+f8a6-f8d6 ( 49): code
+f8d7-f8d7 (  1): code, data
+f8d8-f908 ( 49): code
+f909-f909 (  1): code, data
+f90a-f95a ( 81): code
+f95b-f95b (  1): code, data
+f95c-f971 ( 22): code
+f972-f972 (  1): code, data
+f973-f977 (  5): code
+f978-f978 (  1): code, data
+f979-fa0c (148): code
 fa0d-fa1c ( 16): data
 fa1d-fa1d (  1): unaccessed
 fa1e-fa2d ( 16): data
 fa2e-fa2e (  1): unaccessed
-fa2f-fa87 ( 89): code
+fa2f-fa64 ( 54): code
+fa65-fa65 (  1): code, data
+fa66-fa87 ( 34): code
 fa88-faa7 ( 32): data
-faa8-fd02 (603): code
+faa8-fb09 ( 98): code
+fb0a-fb0a (  1): code, data
+fb0b-fb55 ( 75): code
+fb56-fb56 (  1): code, data
+fb57-fb92 ( 60): code
+fb93-fb93 (  1): code, data
+fb94-fba3 ( 16): code
+fba4-fba4 (  1): code, data
+fba5-fbd8 ( 52): code
+fbd9-fbd9 (  1): code, data
+fbda-fd02 (297): code
 fd03-fd0a (  8): data
-fd0b-fd2c ( 34): code
+fd0b-fd0b (  1): code, data
+fd0c-fd2c ( 33): code
 fd2d-fd3c ( 16): data
-fd3d-fe46 (266): code
+fd3d-fdc8 (140): code
+fdc9-fdc9 (  1): code, data
+fdca-fdff ( 54): code
+fe00-fe00 (  1): code, data
+fe01-fe46 ( 70): code
 fe47-fe4a (  4): unaccessed
-fe4b-fe7d ( 51): code
+fe4b-fe6f ( 37): code
+fe70-fe70 (  1): code, data
+fe71-fe7d ( 13): code
 fe7e-fe7f (  2): unaccessed
 fe80-fe88 (  9): code
 fe89-fe8a (  2): unaccessed
@@ -113,9 +192,11 @@ febe-febf (  2): unaccessed
 fec0-fee7 ( 40): data (indirectly accessed)
 fee8-feed (  6): unaccessed
 feee-ffe5 (248): data (indirectly accessed)
-ffe6-fff9 ( 20): unaccessed
-fffa-fffd (  4): data (note: the NMI and reset vectors)
-fffe-ffff (  2): unaccessed (note: the IRQ vector)
+ffe6-ffef ( 10): unaccessed
+fff0-fff1 (  2): data
+fff2-fff9 (  8): unaccessed
+fffa-fffd (  4): data
+fffe-ffff (  2): unaccessed
 ```
 
 ## Speculation
