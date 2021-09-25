@@ -78,7 +78,7 @@ I created a code/data log file (`.cdl`) of the ROM using the Code/Data Logger in
 The file is in `gamegenie.cdl.gz` (gz compressed).
 
 I also converted the CDL file into a human-readable format using my [cdl-summary](http://github.com/qalle2/cdl-summary) with the arguments `--prg-size 16` and `--bank-size 16`.
-The unedited result is in `cdl-summary-raw.txt`.
+The unedited result is in `cdl-summary-raw.csv`.
 
 Below is the manually-edited data.
 The columns are: CPU address range (hexadecimal), length (decimal), description.

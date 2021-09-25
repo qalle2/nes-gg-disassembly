@@ -1,4 +1,4 @@
-"PRG address","PRG/CPU bank","offset in PRG/CPU bank","CPU address","CDL byte repeat count","CDL byte","CDL byte description"
+"ROM address","bank","offset in bank","NES address","CDL byte repeat count","CDL byte","CDL byte description"
 0,0,0,49152,13,2,"data"
 13,0,13,49165,12275,0,"unaccessed"
 12288,0,12288,61440,41,9,"code"
