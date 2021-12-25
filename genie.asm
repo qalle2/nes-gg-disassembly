@@ -1,6 +1,6 @@
 ; NES Game Genie disassembly (ASM6)
 
-        ; iNES header; see https://wiki.nesdev.com/w/index.php/INES
+        ; iNES header; see https://wiki.nesdev.org/w/index.php/INES
         base $0000
         db "NES", $1a            ; file id
         db 1, 1                  ; 16 KiB PRG ROM, 8 KiB CHR ROM
