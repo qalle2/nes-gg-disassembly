@@ -1,3 +1,4 @@
-*.chr
+*.bin
+*.cdl
 *.nes
-*.prg
+*.nl

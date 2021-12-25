@@ -7,12 +7,12 @@
         db %00000000, %00000000  ; mapper 0 (NROM), horizontal mirroring
         pad $0010, $00           ; unused
 
-        ; PRG ROM
+        ; PRG ROM (4 * 4 KiB)
         rept 4
-        incbin "genie.prg"  ; 4 KiB each
+        incbin "prg.bin"
         endr
 
-        ; CHR ROM
+        ; CHR ROM (32 * 256 bytes)
         rept 32
-        incbin "original.chr"  ; 256 bytes each
+        incbin "chr.bin"
         endr

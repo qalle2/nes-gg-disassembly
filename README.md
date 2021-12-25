@@ -1,37 +1,34 @@
 # nes-gg-disassembly
-A disassembly of the ROM of the [NES](http://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](http://en.wikipedia.org/wiki/Game_Genie). Assembles with [ASM6](https://github.com/qalle2/asm6/).
+A disassembly of the ROM of the [NES](https://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](https://en.wikipedia.org/wiki/Game_Genie). Assembles with [ASM6](https://www.romhacking.net/utilities/674/).
 
 ## How to assemble
-* Download the original Game Genie ROM and rename it to **`original.nes`**.
-  * One location: [NESDev](http://nesdev.com/archive.html) (go to the link *Game Genie by Codemasters* and download `genie.zip`). The site claims: *Galoob has kindly given permission for free distribution.*
-* Copy the CHR ROM data from the original Game Genie ROM to a new file, **`original.chr`**.
-  * Either use `ines_split.py` from my [NES utilities](https://github.com/qalle2/nes-util)&hellip;
-  * &hellip;or open the ROM in a hex editor and copy the last 256 bytes to a new file.
-* Assemble and verify that the reassembled file is identical to the original:
-  * Either run the Linux script `assemble.sh`&hellip;
-  * &hellip;or run:
-    * `asm6 prg.asm genie.prg`
-    * `asm6 genie.asm genie.nes`
-    * `diff original.nes genie.nes` (on Linux)
-    * `fc /b original.nes genie.nes` (on Windows)
+* Download the original Game Genie ROM from e.g. [NESDev](https://archive.nesdev.org).
+* Copy the CHR ROM data (the last 256 bytes) to a new file, `chr.bin`. (Use e.g. a hex editor.)
+* Assemble:
+  * `asm6 prg.asm prg.bin`
+  * `asm6 genie.asm genie.nes`
+* `prg.bin` is no longer needed.
+* Make sure `genie.nes` is identical to the original Game Genie ROM file.
+
+Note: the Linux script `assemble.sh` is for my personal use only. Do not run it before reading it.
 
 ## Screenshots
 
 ### Normal screenshot
-* NTSC mode (256&times;224 pixels)
+* NTSC mode (256×224 pixels)
 
 ![normal](screenshot-ntsc.png)
 
 ### Attribute Table byte boundaries
-* PAL mode (256&times;240 pixels)
+* PAL mode (256×240 pixels)
 * background scrolling disabled (by hacking the ROM)
 * sprites hidden (using emulator settings)
-* a red 32&times;32-pixel grid and text added (photoshopped)
+* a red 32×32-pixel grid and text added (photoshopped)
 
 ![attribute byte boundaries](screenshot-pal,no_scroll,no_sprites,grid.png)
 
 ### Sprites
-* NTSC mode (256&times;224 pixels)
+* NTSC mode (256×224 pixels)
 * background hidden (using emulator settings)
 * the hand cursor, the revolving cursor, a flying letter (`L`) and flying particles can be seen
 
@@ -77,7 +74,7 @@ The sprite-related bugs seem to be caused by some sprites being assigned to both
 I created a code/data log file (`.cdl`) of the ROM using the Code/Data Logger in FCEUX.
 The file is in `gamegenie.cdl.gz` (gz compressed).
 
-I also converted the CDL file into a human-readable format using my [cdl-summary](http://github.com/qalle2/cdl-summary) with the arguments `--prg-size 16` and `--bank-size 16`.
+I also converted the CDL file into a human-readable format using my [cdl-summary](https://github.com/qalle2/cdl-summary) with the arguments `--prg-size 16` and `--bank-size 16`.
 The unedited result is in `cdl-summary-raw.csv`.
 
 Below is the manually-edited data.
@@ -212,12 +209,12 @@ However:
 * A genie usually grants three wishes, not four.
 
 ## References
-* [NESDev Wiki](http://wiki.nesdev.com) (e.g. [the Game Genie article](http://wiki.nesdev.com/w/index.php/Game_Genie))
-* [NES Game Genie Code Format DOC](http://nesdev.com/nesgg.txt)
+* [NESDev Wiki](https://wiki.nesdev.org) (e.g. [the Game Genie article](https://wiki.nesdev.org/w/index.php/Game_Genie))
+* [NES Game Genie Code Format DOC](https://archive.nesdev.org/nesgg.txt)
 
-However, I have *not* used earlier Game Genie disassemblies such as [game-genie-disassembly by Kevin Selwyn](http://github.com/kevinselwyn/game-genie-disassembly) (I discovered it just before publishing my disassembly).
+However, I have *not* used earlier Game Genie disassemblies such as [game-genie-disassembly by Kevin Selwyn](https://github.com/kevinselwyn/game-genie-disassembly) (I discovered it just before publishing my disassembly).
 
 ## Programs used
-* [FCEUX](http://www.fceux.com) (Debugger, Code/Data Logger, etc.)
-* [`nes-sprites.lua`](http://forums.nesdev.com/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
+* [FCEUX](https://fceux.com) (Debugger, Code/Data Logger, etc.)
+* [`nes-sprites.lua`](https://forums.nesdev.org/viewtopic.php?f=2&t=13255) for FCEUX by tokumaru
 * a quick&amp;dirty disassembler I wrote myself
