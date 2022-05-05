@@ -1,6 +1,25 @@
 # nes-gg-disassembly
 A disassembly of the ROM of the [NES](https://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](https://en.wikipedia.org/wiki/Game_Genie). Assembles with [ASM6](https://www.romhacking.net/utilities/674/).
 
+Table of contents:
+* [List of files](#list-of-files)
+* [How to assemble](#how-to-assemble)
+* [Screenshots](#screenshots)
+* [Parts of the Game Genie screen](#parts-of-the-game-genie-screen)
+* [Bugs](#bugs)
+* [FCEUX Code/Data log](#fceux-codedata-log)
+* [Speculation](#speculation)
+* [References](#references)
+* [Programs used](#programs-used)
+
+## List of files
+* `assemble.sh`: a Linux script that assembles the program (warning: deletes files; see also "How to assemble" below)
+* `cdl-summary-raw.csv`: see "FCEUX Code/Data log" below
+* `gamegenie.cdl.gz`: see "FCEUX Code/Data log" below
+* `genie.asm`: source code (ASM6) &ndash; high-level structure
+* `prg.asm`: source code (ASM6) &ndash; PRG ROM
+* `screenshot-*.png`: screenshots
+
 ## How to assemble
 * Download the original Game Genie ROM from e.g. [NESDev](https://archive.nesdev.org).
 * Copy the CHR ROM data (the last 256 bytes) to a new file, `chr.bin`. (Use e.g. a hex editor.)
@@ -10,25 +29,23 @@ A disassembly of the ROM of the [NES](https://en.wikipedia.org/wiki/Nintendo_Ent
 * `prg.bin` is no longer needed.
 * Make sure `genie.nes` is identical to the original Game Genie ROM file.
 
-Note: the Linux script `assemble.sh` is for my personal use only. Do not run it before reading it.
-
 ## Screenshots
 
 ### Normal screenshot
-* NTSC mode (256×224 pixels)
+* NTSC mode (256&times;224 pixels)
 
 ![normal](screenshot-ntsc.png)
 
 ### Attribute Table byte boundaries
-* PAL mode (256×240 pixels)
+* PAL mode (256&times;240 pixels)
 * background scrolling disabled (by hacking the ROM)
 * sprites hidden (using emulator settings)
-* a red 32×32-pixel grid and text added (photoshopped)
+* a red 32&times;32-pixel grid and text added (photoshopped)
 
 ![attribute byte boundaries](screenshot-pal,no_scroll,no_sprites,grid.png)
 
 ### Sprites
-* NTSC mode (256×224 pixels)
+* NTSC mode (256&times;224 pixels)
 * background hidden (using emulator settings)
 * the hand cursor, the revolving cursor, a flying letter (`L`) and flying particles can be seen
 

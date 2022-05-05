@@ -1702,8 +1702,8 @@ check_button_b  ; Called by do_every_frame.
                 cmp #pad_b
                 beq +
                 rts
-+               jmp +                    ; why?
 
++               jmp +                    ; why?
 +               lda revolv_x_letr1       ; continue depending on where revolving cursor is
                 beq movback_or_exit      ; on 1st column
                 lda revolv_y_letr1
@@ -1749,7 +1749,6 @@ erase_letter    lda revolv_y_letr1       ; get position of letter to erase in ti
                 asl a
                 add #4
                 tax
-
 
                 jsr spawn_particls1      ; spawn particles, draw dash on letter, mark letter as
                 lda #19                  ; empty
