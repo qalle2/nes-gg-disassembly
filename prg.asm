@@ -201,63 +201,46 @@ genie_unknown1  equ $fff0
 genie_unknown2  equ $fff1
 
 ; PPU addresses
-vram_nametable0 equ $2000  ; Name Table 0
-vram_attrtable0 equ $23c0  ; Attribute Table 0
+vram_nt0        equ $2000  ; name table 0
+vram_at0        equ $23c0  ; attribute table 0
 vram_palette    equ $3f00  ; palette
 
 ; joypad bitmasks
-pad_a           equ %10000000
-pad_b           equ %01000000
-pad_select      equ %00100000
-pad_start       equ %00010000
-pad_up          equ %00001000
-pad_down        equ %00000100
-pad_left        equ %00000010
-pad_right       equ %00000001
-
-; colors
-color_anim0     equ $21  ; animated 0 (sky blue)
-color_anim1     equ $2c  ; animated 1 (cyan)
-color_anim2     equ $2b  ; animated 2 (green)
-color_anim3     equ $28  ; animated 3 (yellow)
-color_anim4     equ $27  ; animated 4 (orange)
-color_anim5     equ $25  ; animated 5 (pink 1)
-color_anim6     equ $24  ; animated 6 (pink 2)
-color_anim7     equ $2c  ; animated 7 (cyan)
-color_anim_init equ $26  ; initial animated color (red, never seen)
-color_bg        equ $0d  ; background (black, causes problems with some TVs)
-color_hand1     equ $26  ; hand cursor 1 (red)
-color_hilite    equ $20  ; highlight (white)
-color_inputarea equ $00  ; input area (gray)
-color_keyboard  equ $2c  ; virtual keyboard (cyan)
-color_multiuse1 equ $13  ; letters, revolving cursor 1, particles 1 (purple)
-color_multiuse2 equ $20  ; hand cursor 2, revolv. cursor 2, particles 2 (white)
-color_unused1   equ $00  ; gray
-color_unused2   equ $28  ; yellow
+pad_a           equ %10000000  ; A button
+pad_b           equ %01000000  ; B button
+pad_st_sel      equ %00110000  ; start or select button
+pad_up          equ %00001000  ; d-pad up
+pad_down        equ %00000100  ; d-pad down
+pad_left        equ %00000010  ; d-pad left
+pad_right       equ %00000001  ; d-pad right
 
 ; --- Macros ------------------------------------------------------------------
 
 ; These macros prevent ASM6 from automatically optimizing 16-bit addressing to
 ; 8-bit when the address is $00-$ff.
-macro deca _word
-                db $ce, <(_word), $00   ; DEC $00xx
+macro deca _word                        ; DEC absolute
+                hex ce
+                dw _word
 endm
-macro ldaa _word
-                db $ad, <(_word), $00   ; LDA $00xx
+macro ldaa _word                        ; LDA absolute
+                hex ad
+                dw _word
 endm
-macro ldxa _word
-                db $ae, <(_word), $00   ; LDX $00xx
+macro ldxa _word                        ; LDX absolute
+                hex ae
+                dw _word
 endm
-macro staa _word
-                db $8d, <(_word), $00   ; STA $00xx
+macro staa _word                        ; STA absolute
+                hex 8d
+                dw _word
 endm
 
-macro add _operand
-                clc                     ; add without carry
+macro add _operand                      ; add without carry
+                clc
                 adc _operand
 endm
-macro sub _operand
-                sec                     ; subtract with carry
+macro sub _operand                      ; subtract with carry
+                sec
                 sbc _operand
 endm
 
@@ -318,8 +301,8 @@ init2           ; Part 2/3 of initialization. Called by init1.
                 sta ppu_mask_mirror
                 sta ppu_mask
 
-                ; enable NMI; use 8*8-pixel sprites, Pattern Table 0, Name
-                ; Table 0 and 1-byte VRAM address autoincrement
+                ; enable NMI; use 8*8-pixel sprites, pattern table 0, name
+                ; table 0 and 1-byte VRAM address autoincrement
                 lda #%10000000
                 sta ppu_ctrl_mirror
                 sta ppu_ctrl
@@ -390,7 +373,7 @@ nmi             pha                     ; push A, X, Y
 
 ; -----------------------------------------------------------------------------
 
-draw_bg_graphic ; Copy a graphic (e.g. the Game Genie logo) to Name Table.
+draw_bg_graphic ; Copy a graphic (e.g. the Game Genie logo) to name table.
                 ; In: A = id (see graphix_offsets), X/Y = X/Y position in
                 ;     tiles.
                 ; Called by init_background, letter_input, check_button_b.
@@ -532,7 +515,8 @@ multiply        ; Multiply (X * A -> A).
 
 ; -----------------------------------------------------------------------------
 
-sprite_dma      ; Copy interleaved sprite data to OAM. Called by nmi, init3.
+sprite_dma      ; Copy interleaved sprite data to OAM.
+                ; Called by nmi, init3.
                 lda #$00
                 sta oam_addr
                 lda #>sprite_data
@@ -660,8 +644,7 @@ draw_metaspr_gr ; Draw a graphic (e.g. the hand cursor) as a metasprite.
                 lda metaspr_height
                 sta metasprites+1,x
 
-                ; advance to indexes to individual sprites
-                inx
+                inx                     ; indexes to individual sprites
                 inx
 
                 ; assign grafic_dataleft free sprites to metasprite, starting
@@ -858,9 +841,8 @@ init_loop_x     ; copy one row of graphics data to target sprites
                 lda (graphics_ptr),y
                 sta temp1
 
-                ; push high nybble if even offset, else low
-                lda nybble_offs
-                and #%00000001
+                lda nybble_offs         ; if even offset, push high nybble,
+                and #%00000001          ; else low
                 beq +
                 lda temp1
                 and #%00001111
@@ -949,7 +931,6 @@ convert_sprite  ; Convert one non-hidden sprite from planar to interleaved.
                 ; In: A = attribute byte, X/Y = source/target index.
                 ; Out: Y += 4.
                 ; Called by convert_sprites.
-
                 sta sprite_data+2,y
                 lda sprite_data_y,x
                 sta sprite_data+0,y
@@ -966,7 +947,6 @@ convert_sprite  ; Convert one non-hidden sprite from planar to interleaved.
 hide_sprite_sub ; Hide a sprite in sprite_data.
                 ; In: Y = index, out: Y += 4.
                 ; Called by convert_sprites.
-
                 lda #255
                 sta sprite_data,y
                 iny
@@ -996,7 +976,7 @@ update_attr_blk ; Change the value of an attribute block (2 bits) within one
                 ora temp1
                 tay
 
-                ; position of byte within Attribute Table (0-63) -> A, X
+                ; position of byte within attribute table (0-63) -> A, X
                 lda vram_block_y
                 asl a
                 asl a
@@ -1007,10 +987,10 @@ update_attr_blk ; Change the value of an attribute block (2 bits) within one
                 add temp1
                 tax
 
-                ; vram_attrtable0 + A -> VRAM block target address
-                ora #<vram_attrtable0
+                ; vram_at0 + A -> VRAM block target address
+                ora #<vram_at0
                 sta vram_block+2
-                lda #>vram_attrtable0
+                lda #>vram_at0
                 sta vram_block+1
 
                 lda #1                  ; size of data to copy: one byte
@@ -1038,26 +1018,44 @@ attr_blk_masks  ; Attribute block bitmasks. Read by update_attr_blk.
 ; -----------------------------------------------------------------------------
 
 initial_palette ; Initial palette. 32 bytes. Read by init3.
-                ; background
-                db color_bg,      color_unused1, color_unused1, color_keyboard
-                db color_unused1, color_unused1, color_unused1, color_anim_init
-                db color_unused1, color_unused1, color_unused1, color_hilite
-                db color_unused1, color_unused1, color_unused1, color_inputarea
-                ; sprites
-                db color_bg,      color_unused1, color_unused1, color_multiuse1
-                db color_unused1, color_unused1, color_unused1, color_hand1
-                db color_unused1, color_unused1, color_unused1, color_multiuse2
-                db color_unused1, color_unused1, color_unused1, color_unused2
+                ;
+                ; background 0
+                hex 0d        ; background (black; causes problems on some TVs)
+                hex 00 00     ; unused (gray)
+                hex 2c        ; virtual keyboard (cyan)
+                ; background 1
+                hex 00 00 00  ; unused (gray)
+                hex 26        ; initial animated color (red, never seen)
+                ; background 2
+                hex 00 00 00  ; unused (gray)
+                hex 20        ; highlight (white)
+                ; background 3
+                hex 00 00 00  ; unused (gray)
+                hex 00        ; input area (gray)
+                ;
+                ; sprites 0
+                hex 0d        ; background (black; causes problems on some TVs)
+                hex 00 00     ; unused (gray)
+                hex 13        ; letters, revolving crsr 1, particles 1 (purple)
+                ; sprites 1
+                hex 00 00 00  ; unused (gray)
+                hex 26        ; hand cursor 1 (red)
+                ; sprites 2
+                hex 00 00 00  ; unused (gray)
+                hex 20        ; hand crsr 2, revolv crsr 2, particles 2 (white)
+                ; sprites 3
+                hex 00 00 00  ; unused (gray)
+                hex 28        ; unused (yellow)
 
 init3           ; Part 3/3 of initialization. Called by init2.
 
                 lda #1                  ; set flag
                 sta skip_nmi
 
-                lda #>vram_nametable0   ; clear first Name & Attribute Table
+                lda #>vram_nt0          ; clear first name & attribute table
                 sta vram_addr_hi        ; (fill VRAM $2000-$23ff with $00)
                 sta ppu_addr
-                lda #<vram_nametable0
+                lda #<vram_nt0
                 sta ppu_addr
                 ldx #4
                 tay
@@ -1314,10 +1312,10 @@ init_background ; Initialize background graphics. Called by init3.
                 lda #4
                 sta scroll_y_mirror
 
-                lda #1                  ; the Game Genie logo (A=id, X/Y=pos)
+                lda #1                  ; draw the Game Genie logo
                 ldx #5
                 ldy #3
-                jsr draw_bg_graphic
+                jsr draw_bg_graphic     ; A=id, X=X, Y=Y
 
                 ; draw virtual keyboard (2*8 letters)
                 lda #3                  ; "A"
@@ -1326,16 +1324,15 @@ init_background ; Initialize background graphics. Called by init3.
                 sta keybd_graphic_x
                 lda #8
                 sta keybd_graphic_y
--               lda keybd_graphic       ; draw letter (A=id, X/Y=position)
+-               lda keybd_graphic       ; draw letter
                 ldx keybd_graphic_x
                 ldy keybd_graphic_y
-                jsr draw_bg_graphic
+                jsr draw_bg_graphic     ; A=id, X=X, Y=Y
                 lda keybd_graphic_x     ; increment X position
                 add #4
                 sta keybd_graphic_x
                 ;
-                ; if at end of line, move to start of next line
-                cmp #(9*4)
+                cmp #(9*4)              ; next line if necessary
                 bne +
                 lda #4
                 sta keybd_graphic_x
@@ -1343,8 +1340,7 @@ init_background ; Initialize background graphics. Called by init3.
                 add #4
                 sta keybd_graphic_y
                 ;
-+               ; loop until last letter (id 18 = "N") has been drawn
-                inc keybd_graphic
++               inc keybd_graphic       ; loop until "N" (id 18) drawn
                 lda keybd_graphic
                 cmp #(18+1)
                 bne -
@@ -1356,33 +1352,32 @@ init_background ; Initialize background graphics. Called by init3.
                 sta keybd_graphic_x
                 lda #18
                 sta keybd_graphic_y
--               lda #19                 ; draw dash (A=id, X/Y=position)
+-               lda #19                 ; draw dash
                 ldx keybd_graphic_x
                 ldy keybd_graphic_y
-                jsr draw_bg_graphic
+                jsr draw_bg_graphic     ; A=id, X=X, Y=Y
                 lda keybd_graphic_x     ; increment X position
                 add #4
                 sta keybd_graphic_x
                 ;
-                ; if at end of line, move to start of next line
-                cmp #(9*4)
+                cmp #(9*4)              ; new line if necessary
                 bne +
                 lda #4
                 sta keybd_graphic_x
                 lda keybd_graphic_y
                 add #4
                 sta keybd_graphic_y
-+               inc keybd_graphic       ; loop until last dash has been drawn
+                ;
++               inc keybd_graphic       ; loop until all dashes drawn
                 lda keybd_graphic
                 cmp #(3+24)
                 bne -
 
                 ; set attribute table data
-                ; "Game Genie" logo (A=byte, X=rows, Y=first row)
-                lda #%01010101
+                lda #%01010101          ; "Game Genie" logo
                 ldx #4
                 ldy #0
-                jsr fill_atrblkrows
+                jsr fill_atrblkrows     ; A=byte, X=rows, Y=first row
                 lda #%00000000          ; virtual keyboard
                 ldx #4
                 ldy #4
@@ -1396,9 +1391,8 @@ init_background ; Initialize background graphics. Called by init3.
                 ldy #11
                 jsr fill_atrblkrows
 
-                ; highlight top left letter on virtual keyboard
-                ldx #0
-                ldy #0
+                ldx #0                  ; highlight top left letter on virtual
+                ldy #0                  ; keyboard
                 jsr hilite_atr_byte
 
                 lda  #2                 ; ? (no visible effect)
@@ -1419,7 +1413,7 @@ move_hand       ; Called by do_every_frame.
 +               lda hand_x_spd_ptr+1    ; horizontal movement
                 beq move_hand_vert      ; not moving horizontally
 
-                ; get speed (if offset modulo 16 = 15, terminator)
+                ; get speed (if offset % 16 = 15, terminator)
                 ldy hand_x_spd_offs
                 lda (hand_x_spd_ptr),y
                 cmp #$80
@@ -1440,7 +1434,7 @@ move_hand       ; Called by do_every_frame.
                 cmp #7
                 bne +
 
-                jsr upd_hand_ltrpos     ; hand_x_spd_offs modulo 16 = 7
+                jsr upd_hand_ltrpos     ; hand_x_spd_offs % 16 = 7
                 lda joypad1_status
                 and last_x_inp_acc
                 beq +
@@ -1457,10 +1451,9 @@ move_hand       ; Called by do_every_frame.
 move_hand_vert  lda hand_y_spd_ptr+1    ; move vertically
                 beq move_hand_exit      ; not moving vertically
 
-                ; get speed (if offset modulo 16 = 15, terminator)
-                ldy hand_y_spd_offs
+                ldy hand_y_spd_offs     ; get speed
                 lda (hand_y_spd_ptr),y
-                cmp #$80
+                cmp #$80                ; terminator?
                 bne +
 
                 lda #0                  ; stop hand by resetting pointer
@@ -1468,17 +1461,15 @@ move_hand_vert  lda hand_y_spd_ptr+1    ; move vertically
                 jmp ++
 
 +               ldx #hand_y_pixel       ; no terminator
-                ; A = speed, X = address of position; out: Z
-                jsr move_hand2
-                ; every 2nd frame, skip rest of vertical movement
-                beq move_hand_exit
+                jsr move_hand2          ; in: A=speed, X=addr of pos; out: Z
+                beq move_hand_exit      ; every 2nd frame, skip the rest
 
 ++              tya                     ; hand_y_spd_offs
                 and #%00001111          ; get position on current line
                 cmp #7
                 bne ++
 
-                jsr upd_hand_ltrpos     ; hand_y_spd_offs modulo 16 = 7
+                jsr upd_hand_ltrpos     ; hand_y_spd_offs % 16 = 7
                 lda joypad1_status
                 and last_y_inp_acc
                 beq ++
@@ -1519,8 +1510,7 @@ move_hand2      ; Add hand cursor speed to position.
                 ; Out: zero flag reflects odd_frame_flag2.
                 ; Called by move_hand.
 
-                ; divide speed by 2, round down (toward -infinity)
-                pha
+                pha                     ; divide speed by 2, round toward -inf
                 asl a
                 pla
                 ror a
@@ -1528,9 +1518,7 @@ move_hand2      ; Add hand cursor speed to position.
                 dec odd_frame_flag2     ; carry: 0 or LSB of original speed
                 beq +
                 clc
-                ;
-+               ; add new speed and C to hand cursor position
-                adc $00,x
++               adc $00,x               ; add newSpeed+C to hand cursor pos
                 sta $00,x
 
                 inc odd_frame_flag2
@@ -1551,7 +1539,7 @@ hand_area_chang ; Has the hand cursor moved between the virtual keyboard and
                 bne ++
                 lda #1
                 rts
-                ;
+
 +               cmp #pad_up             ; moved up to virtual keyboard?
                 bne ++
                 lda hand_y_letr_trg
@@ -1559,7 +1547,7 @@ hand_area_chang ; Has the hand cursor moved between the virtual keyboard and
                 bne ++
                 lda #1
                 rts
-                ;
+
 ++              lda #0                  ; no
                 rts
 
@@ -1613,7 +1601,7 @@ hilite_atr_byte ; Highlight an attribute byte. An alternate entry point for
                 ; Called by: (see update_atr_byte).
                 lda #%10101010
 
-update_atr_byte ; Update an Attribute Table byte (2*2 attribute blocks).
+update_atr_byte ; Update an attribute table byte (2*2 attribute blocks).
                 ; In: A = new attribute table byte,
                 ;     X/Y = position (X = 0-7; Y = 0-1 if virtual keyboard,
                 ;           2-4 if input area).
@@ -1653,13 +1641,11 @@ upd_hand_ltrpos ; Update letter position of hand cursor. Called by move_hand.
                 tya                     ; push Y
                 pha
 
-                ; un-highlight the letter the cursor is leaving
-                ldx hand_x_keyboard
-                ldy hand_y_keyboard
+                ldx hand_x_keyboard     ; un-highlight the letter the cursor is
+                ldy hand_y_keyboard     ; leaving
                 jsr clear_atr_byte
-                ;
-                ; where's the target letter (virtual keyboard or input area)?
-                lda hand_y_letr_trg
+
+                lda hand_y_letr_trg     ; where's the target letter?
                 cmp #2
                 bcs +
 
@@ -1691,14 +1677,10 @@ init_sprite_atr ; Initial sprite attribute data. Bytes are in reverse order.
                 ; Bits: VHBUUUPP (Vflip, Hflip, Behind bg, Unimplemented,
                 ; Palette).
                 ; Read by init3.
-                ; 19-15
-                db %00011001, %00011001, %00011001, %00011001, %00011010
-                ; 14-10
-                db %00011001, %00011001, %00011001, %00011001, %00011010
-                ; 9-5
-                db %00011001, %00011001, %00011001, %00011001, %00011010
-                ; 4-0
-                db %00011001, %00011001, %00011001, %00011001, %00011010
+                db %00011001, %00011001, %00011001, %00011001, %00011010 ;19-15
+                db %00011001, %00011001, %00011001, %00011001, %00011010 ;14-10
+                db %00011001, %00011001, %00011001, %00011001, %00011010 ;9-5
+                db %00011001, %00011001, %00011001, %00011001, %00011010 ;4-0
 
 ; -----------------------------------------------------------------------------
 
@@ -1758,9 +1740,9 @@ letter_input    ; Button A went from off to on and hand cursor is on virtual
 
                 pla
                 pha
-                jsr draw_bg_graphic     ; draw graphic (A = id, X/Y = X/Y pos)
+                jsr draw_bg_graphic     ; A=id, X=X, Y=Y
                 jsr input_effects
-                pla                     ; pull id
+                pla                     ; id
                 jsr save_letter
 
                 jmp +                   ; why?
@@ -1771,7 +1753,7 @@ letter_input    ; Button A went from off to on and hand cursor is on virtual
                 bne check_8letters
 
                 ; 6 letters on current line;
-                ; if 3rd one is A/P/Z/L/G/I/T/Y, code is complete
+                ; if 3rd one is A/P/Z/L/G/I/T/Y, the code is complete
                 lda revolv_y_letr1
                 asl a
                 asl a
@@ -1901,7 +1883,7 @@ erase_letter    ; get position of letter to erase in tiles, store to X and Y
                 ; spawn particles, draw dash on letter, mark letter as empty
                 jsr spawn_particls1
                 lda #19
-                jsr draw_bg_graphic     ; A = id, X/Y = position
+                jsr draw_bg_graphic     ; A=id, X=X, Y=Y
                 lda #0
                 jmp save_letter         ; ends with RTS
 
@@ -2031,15 +2013,16 @@ update_revolv   ; Update position, phase and attributes of revolving cursor.
 
                 ; X/Y offsets of revolving cursor by phase.
                 ; Read by update_revolv.
-revolv_xoffsets ; Sine wave in two's complement. 17 values, -10...+10.
+revolv_xoffsets ; Sine wave in two's complement. 17 values, -10...+10, last
+                ; one never accessed.
                 db 0, 4, 7, 9, 10, 9, 7, 4
                 db 0, 256-4, 256-7, 256-9, 256-10, 256-9, 256-7, 256-4
-                db 0                    ; never accessed
+                db 0
 revolv_yoffsets ; Inverted cosine wave in two's complement. 17 values,
-                ; -10...+10.
+                ; -10...+10, last one never accessed.
                 db 256-10, 256-9, 256-7, 256-4, 0, 4, 7, 9
                 db 10, 9, 7, 4, 0, 256-4, 256-7, 256-9
-                db 256-10               ; never accessed
+                db 256-10
 
 get_revolv_spd  ; Compute speed (X or Y) for revolving cursor.
                 ; In: revolv_pos, revolv_target.
@@ -2091,7 +2074,7 @@ accel_revolv    ; Accelerate revolving cursor by -1/0/+1 toward target speed.
                 sbc #1                  ; current > target (decrement)
                 jmp ++
 +               adc #1
-++              eor #%10000000          ; convert back into two's-complement
+++              eor #%10000000          ; convert back into two's complement
                 rts
 
 ; -----------------------------------------------------------------------------
@@ -2169,42 +2152,40 @@ spawn_particls3 ; Write initial particle data (16 sprites).
 ; -----------------------------------------------------------------------------
 
 move_particles  ; Move particles. Called by do_every_frame.
+                ; (There are 2 sets of particles: one from each 2nd explosion.)
 
-                ; stop noise if particle_timer goes to 0
-                lda particle_timer
+                lda particle_timer      ; stop noise if timer reaches zero
                 beq +
                 dec particle_timer
                 bne +
                 lda #%00110000
                 sta noise_regs+0
 
-+               ; process 1st set of particles (from every 2nd explosion)
-                lda parti_set1timer
++               lda parti_set1timer     ; process set 1
                 beq move_parti_set2
                 ldx #32
                 inc parti_set1timer
                 lda parti_set1timer
                 cmp #24
-                beq hide_parti_set1
+                beq ++
                 jsr move_particles2     ; A = timer, X = index to sprite data
 
-move_parti_set2 ; process 2nd set of particles (from every 2nd explosion)
-                lda parti_set2timer
+move_parti_set2 lda parti_set2timer     ; process set 2
                 beq +
                 ldx #48
                 inc parti_set2timer
                 lda parti_set2timer
                 cmp #24
-                beq hide_parti_set2
+                beq +++
                 jsr move_particles2     ; A = timer, X = index to sprite data
 +               rts
 
-hide_parti_set1 lda #0
+++              lda #0                  ; hide set 1
                 sta parti_set1timer
                 jsr hide_partic_set
                 jmp move_parti_set2
 
-hide_parti_set2 lda #0
++++             lda #0                  ; hide set 2
                 sta parti_set2timer
                 jmp hide_partic_set     ; ends with RTS
 
@@ -2213,7 +2194,7 @@ move_particles2 ; Move particles, part 2.
                 ;     X = sprite data index (32/48).
                 ; Called by move_particles.
 
-                and #%00000111          ; timer modulo 8 -> temp1
+                and #%00000111          ; timer % 8 -> temp1
                 sta temp1
 
                 ldy #16
@@ -2256,7 +2237,7 @@ hide_particle   ; X/Y position underflow/overflow; hide sprite and move on
 
 ++              sta sprite_data_y,x
 
-                ; slow particle down every 8th frame (temp1 = timer mod 8)
+                ; slow particle down every 8th frame (temp1 = timer % 8)
                 lda temp1
                 bne particle_moved
                 lda parti_spds_x,x
@@ -2273,10 +2254,8 @@ particle_moved  inx
 
 dec_abs_value   ; If number is nonzero, decrement absolute value in 2's
                 ; complement.
-                ; In: A = number to decrement; negative/zero flags must reflect
-                ;         it.
+                ; In: A = number to decrement; N & Z flags must reflect it.
                 ; Called by move_particles2.
-
                 beq ++
                 bpl +
                 add #1
@@ -2286,7 +2265,6 @@ dec_abs_value   ; If number is nonzero, decrement absolute value in 2's
 
 hide_partic_set ; Hide one set of particles (16 sprites starting from X).
                 ; Called by move_particles.
-
                 ldy #16
 -               lda #%00000000
                 sta sprite_data_atr,x
@@ -2353,17 +2331,16 @@ fix_revolv_x    ; Move revolving cursor left until it lies immediately after a
 
                 jsr get_revolv_pos      ; 0-23 -> X
                 lda revolv_x_letr1      ; exit if cursor at column 0 or letter
-                beq ++
+                beq +
                 lda entered_letrs,x
-                bne ++
+                bne +
                 ;
--               ; move cursor left until at column 0 or a letter
-                dex
-                lda entered_letrs,x
-                bne ++
+-               dex                     ; move cursor left until at column 0 or
+                lda entered_letrs,x     ; a letter
+                bne +
                 dec revolv_x_letr1
                 bne -
-++              rts
++               rts
 
 ; -----------------------------------------------------------------------------
 
@@ -2371,7 +2348,6 @@ get_letter      ; Get letter at revolving cursor.
                 ; Out: A = letter, X = cursor position (0-23), zero flag
                 ;      reflects A.
                 ; Called by check_button_b, spawn_particls1.
-
                 jsr get_revolv_pos
                 lda entered_letrs,x
                 rts
@@ -2381,9 +2357,7 @@ get_letter      ; Get letter at revolving cursor.
 get_revolv_pos  ; Get position of revolving cursor.
                 ; Out: X = cursor position (0-23).
                 ; Called by save_letter, fix_revolv_x, get_letter.
-
-                ; revolv_y_letr1 * 8 + revolv_x_letr1
-                lda revolv_y_letr1
+                lda revolv_y_letr1      ; revolv_y_letr1 * 8 + revolv_x_letr1
                 asl a
                 asl a
                 asl a
@@ -2567,7 +2541,7 @@ animate_color   ; Animate color 3 of background subpalette 1.
 +               stx anim_colr_phase
 
                 ; set up VRAM block (data size 1) and copy it to VRAM buffer
-                lda anim_colors,x
+                lda animated_colors,x
                 sta vram_block+3
                 lda #1
                 sta vram_block+0
@@ -2577,9 +2551,9 @@ animate_color   ; Animate color 3 of background subpalette 1.
                 sta vram_block+2
                 jmp vram_blk_to_buf     ; ends with RTS
 
-anim_colors     ; Phases of animated color. Read by animate_color.
-                db color_anim0, color_anim1, color_anim2, color_anim3
-                db color_anim4, color_anim5, color_anim6, color_anim7
+animated_colors ; read by animate_color
+                hex 21 2c 2b 28         ; sky blue, cyan, green, yellow
+                hex 27 25 24 2c         ; orange, pink, purple, cyan
 
 ; -----------------------------------------------------------------------------
 
@@ -2613,25 +2587,22 @@ hilite_inp_area ; Move highlight to another letter on input area.
 inparearow_atrs ; Attribute table data to write when entering a row on input
                 ; area (16 bytes).
                 ; Read by hilite_inp_row.
-                db %10101111, %10101111, %10101111, %10101111
-                db %10101111, %10101111, %10101111, %10101111
-                db %11111010, %11111010, %11111010, %11111010
-                db %11111010, %11111010, %11111010, %11111010
+                hex af af af af af af af af  ; 8 * %10101111
+                hex fa fa fa fa fa fa fa fa  ; 8 * %11111010
 
-hilite_inp_row  ; Highlight active row on input area using Attribute Table.
+hilite_inp_row  ; Highlight active row on input area using attribute table.
                 ; In: revolv_y_letr2, revolv_y_ltr2pr.
                 ; Called by hilite_inp_area.
 
-                ; exit if Y position of revolving cursor unchanged
-                lda revolv_y_ltr2pr
-                cmp revolv_y_letr2
+                lda revolv_y_ltr2pr     ; exit if Y position of revolving
+                cmp revolv_y_letr2      ; cursor unchanged
                 beq hilite_exit
 
                 ; set up a VRAM block to change attribute data of all rows to
                 ; gray (data: 32 * %11111111) and copy block to VRAM buffer
-                lda #>(vram_attrtable0+4*8)
+                lda #>(vram_at0+4*8)
                 sta vram_block+1
-                lda #<(vram_attrtable0+4*8)
+                lda #<(vram_at0+4*8)
                 sta vram_block+2
                 ldy #(4*8-1)
 -               lda #%11111111
@@ -2645,16 +2616,16 @@ hilite_inp_row  ; Highlight active row on input area using Attribute Table.
 
                 ; set up a VRAM block to change attribute data of active row to
                 ; white (%10) and copy block to VRAM buffer;
-                ; address: vram_attrtable0 + (2 + revolv_y_letr2) * 8;
+                ; address: vram_at0 + (2 + revolv_y_letr2) * 8;
                 ; data: 16 bytes from inparearow_atrs
                 lda revolv_y_letr2
                 sub #2
                 asl a
                 asl a
                 asl a
-                add #<(vram_attrtable0+4*8)
+                add #<(vram_at0+4*8)
                 sta vram_block+2
-                lda #>(vram_attrtable0+4*8)
+                lda #>(vram_at0+4*8)
                 sta vram_block+1
                 ldy #(2*8-1)
 -               lda inparearow_atrs,y
@@ -2669,20 +2640,20 @@ hilite_exit     rts
 
 ; -----------------------------------------------------------------------------
 
-check_sel_start ; If select or start pressed, decode entered codes and start
-                ; game.
+check_sel_start ; If select or start pressed and allowed, decode entered codes
+                ; and start the game.
                 ; Called by do_every_frame.
 
-                ; If neither pressed, allow them next time and exit.
+                ; If neither button pressed, allow them next time and exit.
                 ; If either pressed but not allowed, just exit.
                 ; If either pressed and allowed, continue.
                 lda joypad1_status
-                and #(pad_select|pad_start)
+                and #pad_st_sel
                 bne +
-                lda #1                  ; allow select/start
+                lda #1                  ; allow them
                 sta temp2
 -               rts
-+               lda temp2               ; allow select/start?
++               lda temp2               ; allow them?
                 beq -
 
                 lda #%00000000          ; disable NMI and rendering
@@ -2697,23 +2668,19 @@ check_sel_start ; If select or start pressed, decode entered codes and start
                 lda #>decoded_codes
                 sta decoded_cod_ptr+1
                 ;
-                ; fill decoded_codes with $ff (why 16 bytes?)
-                ldx #(16-1)
-                lda #$ff
+                ldx #(16-1)             ; fill decoded_codes with $ff (why 16
+                lda #$ff                ; bytes?)
 -               sta decoded_codes,x
                 dex
                 bpl -
-                lda #3                  ; number of codes to decode
+                lda #3                  ; how many codes to decode
                 sta codes_left
 
-                ; AND bitmask to enable 1st code in genie_ctrl_val
-                lda #%11101111
-                sta code_enab_mask
+                lda #%11101111          ; AND bitmask to enable 1st code in
+                sta code_enab_mask      ; genie_ctrl_val
 
-                ; OR bitmask to enable compare value of 1st code in
-                ; genie_ctrl_val
-                lda #%00000010
-                sta comp_enab_mask
+                lda #%00000010          ; OR bitmask to enable compare value of
+                sta comp_enab_mask      ; 1st code in genie_ctrl_val
 
                 ; value to write to genie_ctrl;
                 ; bits: 0CBAcbaG (A/B/C = disable code, a/b/c = enable compare
@@ -2722,7 +2689,7 @@ check_sel_start ; If select or start pressed, decode entered codes and start
                 lda #%01110001
                 sta genie_ctrl_val
 
-decodeallcodes  ; start the long outer loop
+decode_allcodes ; the start the long outer loop
                 ; bit 3 of temp2 = least significant bit of previous letter
                 ldy #0
                 sty temp2
@@ -2740,13 +2707,11 @@ decodeallcodes  ; start the long outer loop
                 and #%00001111
                 lsr a
                 ;
-                ; bit 3 = least significant bit of previous letter
-                ora temp2
-                sta (code_ptr),y
+                ora temp2               ; bit 3 = least significant bit of
+                sta (code_ptr),y        ; previous letter
                 ;
-                ; the bit that was just shifted out -> bit 3 of temp2
-                lda #$00
-                rol a
+                lda #$00                ; store the bit that was just shifted
+                rol a                   ; out to bit 3 of temp2
                 asl a
                 asl a
                 asl a
@@ -2755,17 +2720,15 @@ decodeallcodes  ; start the long outer loop
                 cpy #8
                 bne -
 
-+               ; if code is not 6 or 8 letters, ignore it
-                sty code_length
++               sty code_length         ; if code isn't 6/8 letters, ignore it
                 cpy #8
                 beq +
                 cpy #6
                 beq ++
                 jmp next_code
 
-+               ; regardless of code length, read 4th value and discard it
-                ldy #3
-                lda (code_ptr),y
++               ldy #3                  ; regardless of code length, read 4th
+                lda (code_ptr),y        ; value and discard it
                 jmp +++
 ++              ldy #3
                 lda (code_ptr),y
@@ -2780,17 +2743,17 @@ decodeallcodes  ; start the long outer loop
                 sta (code_ptr),y
 
                 ; Phase 2/2 of decoding: copy 8 nybbles from one semi-decoded
-                ; code to 4 bytes in decoded_code according to codekey.
+                ; code to 4 bytes in decoded_code according to code_key.
                 ldx #0                  ; X = source nybble offset
                 stx temp2               ; temp2 = target byte offset
--               ldy codekey,x           ; get high nybble
+-               ldy code_key,x          ; get high nybble
                 lda (code_ptr),y
                 asl a
                 asl a
                 asl a
                 asl a
                 inx                     ; get low nybble
-                ldy codekey,x
+                ldy code_key,x
                 ora (code_ptr),y
                 ldy temp2               ; store byte
                 sta decoded_code,y
@@ -2804,18 +2767,18 @@ decodeallcodes  ; start the long outer loop
                 sta decoded_code+0
 
                 ; ignore code if address matches any previously-decoded code
-                lda decoded_code+0      ; A/X = address high/low
+                lda decoded_code+0       ; A/X = address high/low
                 ldx decoded_code+1
-                cmp decoded_codes+0     ; ignore if matches 1st code
+                cmp decoded_codes+0      ; ignore if matches 1st code
                 bne +
                 cpx decoded_codes+1
                 beq next_code
-+               cmp decoded_codes+4     ; ignore if matches 2nd code
++               cmp decoded_codes+4      ; ignore if matches 2nd code
                 bne +
                 cpx decoded_codes+4+1
                 beq next_code
-+               cmp decoded_codes+2*4   ; ignore if matches 3rd code
-                bne +                   ; (useless; it's always $ffff)
++               cmp decoded_codes+2*4    ; ignore if matches 3rd code
+                bne +                    ; (useless; it's always $ffff)
                 cpx decoded_codes+2*4+1
                 beq next_code
 
@@ -2826,10 +2789,10 @@ decodeallcodes  ; start the long outer loop
                 sta (decoded_cod_ptr),y  ; address
                 dey
                 bpl -
-                ldy #3                  ; replace value
+                ldy #3                   ; replace value
                 lda decoded_code-1,y
                 sta (decoded_cod_ptr),y
-                dey                     ; compare value
+                dey                      ; compare value
                 lda decoded_code+1,y
                 sta (decoded_cod_ptr),y
 
@@ -2844,32 +2807,29 @@ decodeallcodes  ; start the long outer loop
                 ora comp_enab_mask
 +               sta genie_ctrl_val
 
-next_code       ; prepare for next code by shifting bitmasks left
-                sec
-                rol code_enab_mask
+next_code       sec                     ; prepare for next code by shifting
+                rol code_enab_mask      ; bitmasks left
                 asl comp_enab_mask
 
-                ; advance source pointer (high byte never increments)
-                lda code_ptr+0
-                add #8
+                lda code_ptr+0          ; advance source pointer
+                add #8                  ; (high byte never increments)
                 sta code_ptr+0
                 bcc +
                 inc code_ptr+1
 
-+               ; advance target pointer (high byte never increments)
-                lda decoded_cod_ptr+0
-                add #4
++               lda decoded_cod_ptr+0   ; advance target pointer (high byte
+                add #4                  ; never increments)
                 sta decoded_cod_ptr+0
                 bcc +
                 inc decoded_cod_ptr+1
 
-+               dec codes_left          ; end of the long outer loop
++               dec codes_left          ; the end of the long outer loop
                 beq +
-                jmp decodeallcodes
+                jmp decode_allcodes
 
 +               ; copy a short program to RAM (and two extra bytes for some
                 ; reason)
-                ldx #(codekey-ram_program+2-1)
+                ldx #(code_key-ram_program+2-1)
 -               lda ram_program,x
                 sta ram_prog_target,x
                 dex
@@ -2891,7 +2851,7 @@ ram_program     ; a short program that is copied to RAM and executed;
                 sta genie_ctrl
                 jmp (reset_vector)      ; reset system
 
-codekey         ; how to descramble codes; read by check_sel_start
+code_key        ; how to descramble codes; read by check_sel_start
                 db 3, 5, 2, 4, 1, 0, 7, 6
 
 ; -----------------------------------------------------------------------------
@@ -2910,22 +2870,22 @@ graphix_offsets ; Offsets to actual graphics data (see below). 2 bytes each,
                 offs_to_graphic graphic_unused  ;  0 (never accessed)
                 offs_to_graphic graphic_logo    ;  1
                 offs_to_graphic graphic_revolv  ;  2
-                offs_to_graphic graphic_a       ;  3
-                offs_to_graphic graphic_e       ;  4
-                offs_to_graphic graphic_p       ;  5
-                offs_to_graphic graphic_o       ;  6
-                offs_to_graphic graphic_z       ;  7
+                offs_to_graphic graphic_letr_a  ;  3
+                offs_to_graphic graphic_letr_e  ;  4
+                offs_to_graphic graphic_letr_p  ;  5
+                offs_to_graphic graphic_letr_o  ;  6
+                offs_to_graphic graphic_letr_z  ;  7
                 offs_to_graphic graphic_letr_x  ;  8
-                offs_to_graphic graphic_l       ;  9
-                offs_to_graphic graphic_u       ; 10
-                offs_to_graphic graphic_g       ; 11
-                offs_to_graphic graphic_k       ; 12
-                offs_to_graphic graphic_i       ; 13
-                offs_to_graphic graphic_s       ; 14
-                offs_to_graphic graphic_t       ; 15
-                offs_to_graphic graphic_v       ; 16
+                offs_to_graphic graphic_letr_l  ;  9
+                offs_to_graphic graphic_letr_u  ; 10
+                offs_to_graphic graphic_letr_g  ; 11
+                offs_to_graphic graphic_letr_k  ; 12
+                offs_to_graphic graphic_letr_i  ; 13
+                offs_to_graphic graphic_letr_s  ; 14
+                offs_to_graphic graphic_letr_t  ; 15
+                offs_to_graphic graphic_letr_v  ; 16
                 offs_to_graphic graphic_letr_y  ; 17
-                offs_to_graphic graphic_n       ; 18
+                offs_to_graphic graphic_letr_n  ; 18
                 offs_to_graphic graphic_dash    ; 19
                 offs_to_graphic graphic_hand    ; 20
 
@@ -2944,7 +2904,7 @@ graphix_offsets ; Offsets to actual graphics data (see below). 2 bytes each,
                 ;           23
                 ;           01
 
-graphic_unused  db 8, 2                  ; an invalid graphic (never accessed)
+graphic_unused  db 8, 2                  ; not a valid graphic (never accessed)
                 db %00000001, %00100011, %01000101, %01100111
 graphic_logo    db 30, 4                 ; "Game Genie" logo
                 ; line 0 start
@@ -2966,27 +2926,27 @@ graphic_logo    db 30, 4                 ; "Game Genie" logo
 graphic_revolv  db 2, 2                  ; revolving cursor
                 db %10110001             ; line 0
                 db %10000000             ; line 1
-graphic_a       db 4, 4                  ; "A"
+graphic_letr_a  db 4, 4                  ; "A"
                 db %00001010, %00000000  ; line 0
                 db %00000101, %01010000  ; line 1
                 db %10101100, %11100000  ; line 2
                 db %11000100, %11000100  ; line 3
-graphic_e       db 4, 4                  ; "E"
+graphic_letr_e  db 4, 4                  ; "E"
                 db %10001101, %11100000  ; line 0
                 db %00000111, %00010000  ; line 1
                 db %00000101, %00100000  ; line 2
                 db %10001100, %11000000  ; line 3
-graphic_p       db 4, 4                  ; "P"
+graphic_letr_p  db 4, 4                  ; "P"
                 db %10001101, %01100000  ; line 0
                 db %00000111, %10010000  ; line 1
                 db %00000101, %00000000  ; line 2
                 db %10001100, %00000000  ; line 3
-graphic_o       db 4, 4                  ; "O"
+graphic_letr_o  db 4, 4                  ; "O"
                 db %00001001, %01100000  ; line 0
                 db %10100000, %00000101  ; line 1
                 db %10000001, %00100100  ; line 2
                 db %00001000, %01000000  ; line 3
-graphic_z       db 4, 4                  ; "Z"
+graphic_letr_z  db 4, 4                  ; "Z"
                 db %10101100, %11100000  ; line 0
                 db %00000010, %01000000  ; line 1
                 db %00100100, %00100000  ; line 2
@@ -2996,42 +2956,42 @@ graphic_letr_x  db 4, 4                  ; "X"
                 db %00000110, %01000000  ; line 1
                 db %00100100, %01100000  ; line 2
                 db %11000100, %11000100  ; line 3
-graphic_l       db 4, 4                  ; "L"
+graphic_letr_l  db 4, 4                  ; "L"
                 db %10001101, %00000000  ; line 0
                 db %00000101, %00000000  ; line 1
                 db %00000101, %00100000  ; line 2
                 db %10001100, %11000000  ; line 3
-graphic_u       db 4, 4                  ; "U"
+graphic_letr_u  db 4, 4                  ; "U"
                 db %11100100, %11100100  ; line 0
                 db %10100000, %10100000  ; line 1
                 db %10100000, %10100000  ; line 2
                 db %00001100, %01000000  ; line 3
-graphic_g       db 4, 4                  ; "G"
+graphic_letr_g  db 4, 4                  ; "G"
                 db %00001001, %11000101  ; line 0
                 db %10100000, %00110001  ; line 1
                 db %10000001, %00000101  ; line 2
                 db %00001000, %11000000  ; line 3
-graphic_k       db 4, 4                  ; "K"
+graphic_letr_k  db 4, 4                  ; "K"
                 db %10001101, %10100100  ; line 0
                 db %00000111, %01000000  ; line 1
                 db %00000101, %01100000  ; line 2
                 db %10001100, %10000100  ; line 3
-graphic_i       db 4, 4                  ; "I"
+graphic_letr_i  db 4, 4                  ; "I"
                 db %00001110, %01000000  ; line 0
                 db %00001010, %00000000  ; line 1
                 db %00001010, %00000000  ; line 2
                 db %00001100, %01000000  ; line 3
-graphic_s       db 4, 4                  ; "S"
+graphic_letr_s  db 4, 4                  ; "S"
                 db %00101100, %01110000  ; line 0
                 db %10000111, %00010000  ; line 1
                 db %00100000, %11100000  ; line 2
                 db %00001100, %01000000  ; line 3
-graphic_t       db 4, 4                  ; "T"
+graphic_letr_t  db 4, 4                  ; "T"
                 db %10101110, %11100000  ; line 0
                 db %00001010, %00000000  ; line 1
                 db %00001010, %00000000  ; line 2
                 db %00001100, %01000000  ; line 3
-graphic_v       db 4, 4                  ; "V"
+graphic_letr_v  db 4, 4                  ; "V"
                 db %11100100, %11100100  ; line 0
                 db %10000001, %10010000  ; line 1
                 db %00000110, %01000000  ; line 2
@@ -3041,7 +3001,7 @@ graphic_letr_y  db 4, 4                  ; "Y"
                 db %00000110, %01000000  ; line 1
                 db %00001010, %00000000  ; line 2
                 db %00001100, %01000000  ; line 3
-graphic_n       db 4, 4                  ; "N"
+graphic_letr_n  db 4, 4                  ; "N"
                 db %11100000, %11100100  ; line 0
                 db %10100110, %10100000  ; line 1
                 db %10100000, %11100000  ; line 2
