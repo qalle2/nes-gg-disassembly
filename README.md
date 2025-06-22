@@ -1,4 +1,6 @@
 # nes-gg-disassembly
+*Note: This project has been moved to [Codeberg](https://codeberg.org/qalle/nes-gamegenie-disassembly). The version here on GitHub will no longer be updated.*
+
 A disassembly of the ROM of the [NES](https://en.wikipedia.org/wiki/Nintendo_Entertainment_System) cheat cartridge [*Game Genie*](https://en.wikipedia.org/wiki/Game_Genie). Assembles with [ASM6](https://www.romhacking.net/utilities/674/).
 
 Table of contents:
